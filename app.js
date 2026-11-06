@@ -75,7 +75,7 @@ function drawFilter(){
   $('fkat').value=CATS[v]?v:'';
 }
 function drawCats(){
-  $('cats').innerHTML=Object.entries(CATS).map(([k,v])=>`<button type="button" class="cat ${k===cat?'on':''}" data-k="${k}"${editing?' disabled':''}><b>${esc(v.n)}</b><small>${BU}-${k}-…</small></button>`).join('')
+  $('cats').innerHTML=Object.entries(CATS).map(([k,v])=>`<button type="button" class="cat ${k===cat?'on':''}" data-k="${k}"${editing?' disabled':''}><b>${esc(v.n)}</b></button>`).join('')
     +`<button type="button" class="cat add" data-add="1"${editing?' disabled':''}><b>+</b><small>Tambah klasifikasi</small></button>`;
   $('cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
     if(b.dataset.add){toggleAdd(true);return}
