@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Registrasi Kode Barang</title>
-<meta name="theme-color" content="#0c2340">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f5a623'/%3E%3Cpath fill='%230c2340' d='M13.2 3 6 13h4.8L10 21l8-10.4h-5z'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0a2a5e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%235cc8ff'/%3E%3Cpath fill='%230a2a5e' d='M13.2 3 6 13h4.8L10 21l8-10.4h-5z'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -78,16 +78,47 @@
   <div id="msg" role="status"></div>
  </section>
 
+<div class="stack">
  <section class="card">
-  <h2>2. Label cetak (75 × 45 mm)</h2>
+  <h2>2. Label cetak <span id="lblDim" class="dim"></span></h2>
   <div class="lblwrap"><div id="label" class="lbl"></div></div>
+  <div class="row sizerow">
+   <div><label for="lblSize">Ukuran label</label>
+    <select id="lblSize">
+     <option value="100x60">100 × 60 mm (besar)</option>
+     <option value="75x45">75 × 45 mm (standar)</option>
+     <option value="60x40">60 × 40 mm</option>
+     <option value="50x30">50 × 30 mm</option>
+     <option value="40x25">40 × 25 mm (kecil)</option>
+     <option value="30x20">30 × 20 mm (mini)</option>
+     <option value="custom">Kustom…</option>
+    </select></div>
+   <div id="lblCustom" class="row cust" hidden>
+    <div><label for="lblW">Lebar (mm)</label><input id="lblW" type="number" min="20" max="150" value="60"></div>
+    <div><label for="lblH">Tinggi (mm)</label><input id="lblH" type="number" min="15" max="100" value="40"></div>
+   </div>
+  </div>
   <div class="acts">
    <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
    <button class="btn" id="cetak">Cetak label</button>
+   <span id="perSheet" class="persheet"></span>
   </div>
-
-  <p class="hint">Label dicetak di kertas A4: 2 kolom × 6 baris = 12 label per lembar (margin 10 mm). Pilih skala 100% di dialog cetak, lalu potong mengikuti garis tepi label. Jumlah salinan terisi otomatis sesuai "Jumlah" barang, bisa diubah.</p>
  </section>
+
+ <section class="card">
+  <h2>Ringkasan barang <span id="sumTot" class="dim"></span></h2>
+  <div class="sum" id="sum">
+   <button type="button" class="sc ok" data-f="baik"><b id="sBaik">0</b><span>Baik</span></button>
+   <button type="button" class="sc wr" data-f="kal"><b id="sKal">0</b><span>Perlu kalibrasi</span></button>
+   <button type="button" class="sc wr" data-f="perb"><b id="sPerb">0</b><span>Perlu perbaikan</span></button>
+   <button type="button" class="sc er" data-f="rusak"><b id="sRusak">0</b><span>Rusak</span></button>
+   <button type="button" class="sc in" data-f="pinjam"><b id="sPinjam">0</b><span>Sedang dipinjam</span></button>
+   <button type="button" class="sc ok" data-f="tsd"><b id="sTsd">0</b><span>Tersedia</span></button>
+  </div>
+  <p class="hint">Klik kotak untuk melihat daftar barangnya.</p>
+ </section>
+
+</div>
 
  <section class="card full">
   <h2 class="h2flex">3. Database barang <span id="stat"></span></h2>
@@ -109,10 +140,12 @@
    <button class="btn sec" id="csv">Ekspor CSV</button>
    <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
   </div>
+  <label class="selallm"><input type="checkbox" id="selAllM"> <span id="selAllMt">Pilih semua</span></label>
   <div class="tw"><table>
    <thead><tr><th><input type="checkbox" id="selAll" aria-label="Pilih semua"></th><th>Kode</th><th>Klasifikasi</th><th>Nama barang</th><th>Merk / Tipe</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Kalibrasi</th><th>Status</th><th>Tgl</th><th></th></tr></thead>
    <tbody id="rows"></tbody>
   </table></div>
+  <div class="more" id="moreWrap" hidden><button type="button" class="btn sec" id="more"></button></div>
   <div class="empty" id="empty" hidden>Belum ada data.</div>
  </section>
 </main>
@@ -152,6 +185,12 @@
    <button class="btn sec" type="button" data-close="dlgKembali">Batal</button>
   </div>
  </form>
+</dialog>
+
+<dialog id="dlgList">
+ <h3 id="lsTitle"></h3>
+ <div id="lsBody" class="lsbody"></div>
+ <div class="acts"><button class="btn sec" type="button" data-close="dlgList">Tutup</button></div>
 </dialog>
 
 <dialog id="dlgDetail">

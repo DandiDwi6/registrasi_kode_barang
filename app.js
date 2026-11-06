@@ -182,6 +182,47 @@ function drawCode(root,it){
     }catch(e){}
   }
 }
+/* ================= ukuran label ================= */
+const LSS='kode-barang-size-v1';
+const A4W=190,A4H=277; // area cetak A4 setelah margin 10 mm
+function applySize(save){
+  let v=$('lblSize').value,w,h;
+  if(v==='custom'){w=+$('lblW').value||60;h=+$('lblH').value||40}
+  else{[w,h]=v.split('x').map(Number)}
+  w=Math.min(150,Math.max(20,w));h=Math.min(100,Math.max(15,h));
+  $('lblCustom').hidden=v!=='custom';
+  const mode=w<45?'mini':(h<35||w<60?'cmp':'');
+  const k=mode==='mini'?1:Math.min(1.6,Math.max(.7,Math.min(w/75,h/45)));
+  let qr,cf;
+  if(mode==='mini'){
+    qr=Math.max(8,Math.min(w-2,h-2-4));
+    cf=Math.min(8,(w-2)/9.6*2.835*.97);
+  }else{
+    qr=Math.max(8,mode==='cmp'?Math.min(h-4,w*.42):Math.min(h*.62,w*.4));
+    cf=Math.min(10.5*k,Math.max(5,(w-6*k-qr-2.5*k)/9.6*2.835*.97));
+  }
+  const gx=w<60?3:5,gy=1;
+  const cols=Math.max(1,Math.floor((A4W+gx)/(w+gx))),rows=Math.max(1,Math.floor((A4H+gy)/(h+gy)));
+  PER_SHEET=cols*rows;
+  const s=document.documentElement.style,f=n=>(+n.toFixed(2));
+  s.setProperty('--lw',f(w)+'mm');s.setProperty('--lh',f(h)+'mm');s.setProperty('--k',f(k));
+  s.setProperty('--qr',f(qr)+'mm');s.setProperty('--cf',f(cf)+'pt');
+  s.setProperty('--cols',cols);s.setProperty('--gx',gx+'mm');s.setProperty('--gy',gy+'mm');
+  document.documentElement.dataset.lsz=mode;
+  $('lblDim').textContent=f(w)+' × '+f(h)+' mm';
+  $('perSheet').textContent=PER_SHEET+' label / lembar A4';
+  if(save){try{localStorage.setItem(LSS,JSON.stringify({v,w:$('lblW').value,h:$('lblH').value}))}catch(e){}}
+}
+function loadSize(){
+  try{
+    const o=JSON.parse(localStorage.getItem(LSS)||'null');
+    if(o){if([...$('lblSize').options].some(x=>x.value===o.v))$('lblSize').value=o.v;if(o.w)$('lblW').value=o.w;if(o.h)$('lblH').value=o.h}
+  }catch(e){}
+  applySize(false);
+}
+$('lblSize').onchange=()=>applySize(true);
+$('lblW').oninput=$('lblH').oninput=()=>applySize(true);
+
 function label(it){
   const L=$('label');
   if(!it){L.innerHTML='<div class="empty" style="margin:auto;color:#666">Label muncul setelah barang disimpan</div>';return}
@@ -189,7 +230,7 @@ function label(it){
   drawCode(L,it);
   $('copies').value=Math.min(99,Math.max(1,it.qty||1));
 }
-const PER_SHEET=12; // A4: 2 kolom x 6 baris
+let PER_SHEET=12; // diatur ulang oleh applySize()
 function printBatch(list){ // list: [{it, n}]
   const total=list.reduce((a,x)=>a+x.n,0);
   if(!total)return;
@@ -217,6 +258,7 @@ function updateBulk(){
   $('bulkPrint').textContent='Cetak label terpilih ('+sel.size+')';
   $('bulkPrint').disabled=!sel.size;
   $('selAll').checked=visible.length>0&&visible.every(k=>sel.has(k));
+  $('selAllM').checked=$('selAll').checked;$('selAllMt').textContent='Pilih semua hasil ('+visible.length+')';
 }
 window.addEventListener('afterprint',()=>{$('printArea').innerHTML=''});
 
@@ -245,15 +287,48 @@ function alerts(){
 }
 $('alerts').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;$('fstat').value=$('fstat').value===b.dataset.s?'':b.dataset.s;render()};
 
+const SUMDEF={
+  baik:['Barang kondisi Baik',i=>i.kondisi==='Baik'],
+  kal:['Barang perlu kalibrasi',i=>i.kondisi==='Perlu kalibrasi'],
+  perb:['Barang perlu perbaikan',i=>i.kondisi==='Perlu perbaikan'],
+  rusak:['Barang rusak',i=>i.kondisi==='Rusak'],
+  pinjam:['Barang sedang dipinjam',i=>!!i.pinjam],
+  tsd:['Barang tersedia',i=>!i.pinjam]
+};
+function showList(key){
+  const d=SUMDEF[key];if(!d)return;
+  const list=items.filter(d[1]).sort((a,b)=>a.kode.localeCompare(b.kode));
+  $('lsTitle').textContent=d[0]+' ('+list.length+')';
+  $('lsBody').innerHTML=list.length?list.map(i=>{
+    const sub=[i.lokasi&&'Lokasi: '+i.lokasi,i.pinjam&&'Dipinjam: '+i.pinjam.oleh].filter(Boolean).join(' · ');
+    return `<button type="button" class="lsitem" data-k="${esc(i.kode)}"><code>${esc(i.kode)}</code><b>${esc(i.nama)}</b>${sub?`<small>${esc(sub)}</small>`:''}</button>`;
+  }).join(''):'<div class="lsempty">Tidak ada barang.</div>';
+  if(!$('dlgList').open)$('dlgList').showModal();
+}
+$('sum').onclick=e=>{const b=e.target.closest('.sc');if(b)showList(b.dataset.f)};
+$('lsBody').onclick=e=>{const b=e.target.closest('.lsitem');if(!b)return;$('dlgList').close();showDetail(b.dataset.k)};
+function summary(){
+  const c={Baik:0,'Perlu kalibrasi':0,'Perlu perbaikan':0,Rusak:0,pinjam:0};
+  items.forEach(i=>{if(c[i.kondisi]!==undefined)c[i.kondisi]++;if(i.pinjam)c.pinjam++});
+  $('sBaik').textContent=c.Baik;$('sKal').textContent=c['Perlu kalibrasi'];
+  $('sPerb').textContent=c['Perlu perbaikan'];$('sRusak').textContent=c.Rusak;
+  $('sPinjam').textContent=c.pinjam;$('sTsd').textContent=items.length-c.pinjam;
+  $('sumTot').textContent='Total '+items.length+' barang';
+}
+const isMob=()=>window.matchMedia('(max-width:700px)').matches;
+const PAGE=()=>isMob()?15:50;
+let shownN=0,lastSig=null;const expanded=new Set();
 function render(){
   syncCats();
   const q=$('cari').value.toLowerCase().trim(),f=$('fkat').value,st=$('fstat').value;
   const list=items.filter(i=>(!f||i.kat===f)&&statusMatch(i,st)&&
       (!q||[i.kode,i.nama,i.sn,i.lokasi,i.merk,i.tipe,i.pinjam&&i.pinjam.oleh,i.pinjam&&i.pinjam.proyek].join(' ').toLowerCase().includes(q)))
     .sort((a,b)=>b.kode.localeCompare(a.kode));
+  const sig=q+'|'+f+'|'+st;if(sig!==lastSig){lastSig=sig;shownN=0}
+  const lim=Math.max(shownN,PAGE()),part=list.slice(0,lim),rest=list.length-part.length;
   const known=new Set(items.map(i=>i.kode));sel.forEach(k=>{if(!known.has(k))sel.delete(k)});
   visible=list.map(i=>i.kode);
-  $('rows').innerHTML=list.map(i=>{
+  $('rows').innerHTML=part.map(i=>{
     const ks=kalState(i);
     const kal=ks.k?`<span class="bdg ${ks.c}">${esc(ks.t)}</span> <small>${esc(fmtID(i.kalNext))}</small>`:'<small>-</small>';
     const pj=i.pinjam
@@ -261,13 +336,16 @@ function render(){
       :'<span class="bdg ok">Tersedia</span>';
     const hasHist=i.pinjam||(i.riwayat&&i.riwayat.length);
     const k=esc(i.kode);
-    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a></td><td data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}</td><td data-label="Merk / Tipe">${esc([i.merk,i.tipe].filter(Boolean).join(' / '))}</td><td data-label="S/N">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${esc(i.kondisi)}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td data-label="Tgl">${esc(i.tgl)}</td>
+    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a></td><td data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}</td><td data-label="Merk / Tipe">${esc([i.merk,i.tipe].filter(Boolean).join(' / '))}</td><td data-label="S/N">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${esc(i.kondisi)}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td data-label="Tgl">${esc(i.tgl)}</td>
     <td class="aksi"><button class="btn sec" data-p="${k}">Label</button> <button class="btn sec" data-e="${k}">Edit</button> ${i.pinjam?`<button class="btn sec" data-k="${k}">Kembalikan</button>`:`<button class="btn sec" data-b="${k}">Pinjam</button>`}${hasHist?` <button class="btn sec" data-r="${k}">Riwayat</button>`:''} <button class="btn dg" data-d="${k}">Hapus</button></td></tr>`;
   }).join('');
   $('empty').hidden=list.length>0;
+  $('moreWrap').hidden=rest<=0;
+  $('more').textContent='Tampilkan lebih banyak ('+rest+' lagi)';
   $('empty').textContent=items.length?'Tidak ada barang yang cocok dengan filter.':'Belum ada data.';
   if(!$('stat').dataset.lock)$('stat').textContent=items.length+' barang tersimpan'+(col?'':' (lokal browser)');
   alerts();
+  summary();
   updateBulk();
   showNext();
 }
@@ -483,6 +561,16 @@ $('dlgDetail').onclick=e=>{
 $('dlgDetail').addEventListener('close',clearHash);
 window.addEventListener('hashchange',openFromHash);
 
+/* ================= daftar: buka detail baris (HP) & muat lebih banyak ================= */
+$('rows').addEventListener('click',e=>{
+  if(!isMob()||e.target.closest('button,a,input,select,label'))return;
+  const tr=e.target.closest('tr[data-row]');if(!tr)return;
+  const k=tr.dataset.row;
+  if(expanded.has(k)){expanded.delete(k);tr.classList.remove('open')}else{expanded.add(k);tr.classList.add('open')}
+});
+$('more').onclick=()=>{shownN=Math.max(shownN,PAGE())+PAGE();render()};
+window.matchMedia('(max-width:700px)').addEventListener('change',()=>{shownN=0;render()});
+
 /* ================= filter & cetak ================= */
 $('cetak').onclick=printLabels;
 $('bulkPrint').onclick=printSelected;
@@ -492,6 +580,7 @@ $('rows').addEventListener('change',e=>{
   updateBulk();
 });
 $('selAll').onchange=e=>{visible.forEach(k=>{if(e.target.checked)sel.add(k);else sel.delete(k)});render()};
+$('selAllM').onchange=$('selAll').onchange;
 $('tgl').onchange=showNext;
 $('cari').oninput=render;$('fkat').onchange=render;$('fstat').onchange=render;
 
@@ -586,7 +675,7 @@ $('csvIn').onchange=async e=>{
 async function init(){
   loadCustomCats();
   if(typeof qrcode==='undefined')msg('Library QR gagal dimuat (periksa koneksi internet). Label sementara hanya berisi teks.',1);
-  drawFilter();drawCats();label(null);render();
+  drawFilter();drawCats();loadSize();label(null);render();
   if(API){
     col=true; // penanda mode database bersama
     $('stat').dataset.lock='1';$('stat').textContent='memuat dari Google Sheets…';
