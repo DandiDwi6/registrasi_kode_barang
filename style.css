@@ -25,7 +25,7 @@
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;background-color:var(--bg);background-image:var(--bgimg);background-attachment:fixed;color:var(--tx);font:14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
+body{margin:0;background-color:var(--bg);background-image:var(--bgimg);background-attachment:fixed;overflow-x:clip;color:var(--tx);font:14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 
 
 /* ---- latar bergerak: peralatan ---- */
@@ -53,7 +53,7 @@ header p{margin:4px 0 0 54px;color:var(--navmu);font-size:13px}
 main{max-width:1100px;margin:-38px auto 0;position:relative;padding:0 20px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 .full{grid-column:1/-1}
 .stack{display:grid;gap:20px;min-width:0}
-.card{background:var(--card);border-radius:18px;padding:22px 22px 24px;box-shadow:var(--sh)}
+.card{min-width:0;background:var(--card);border-radius:18px;padding:22px 22px 24px;box-shadow:var(--sh)}
 .card h2{margin:0 0 6px;font-size:16px;font-weight:700;letter-spacing:-.01em}
 .card h2 .dim{float:right;margin-top:3px}
 .dim{margin-left:8px;color:var(--mu);font-size:12px;font-weight:400}
@@ -210,7 +210,7 @@ dialog h3 span{color:var(--ac);font-family:var(--mono)}
 .err{min-height:18px;margin-top:8px;color:var(--er);font-size:13px}
 
 /* ---- tablet & HP ---- */
-@media(max-width:800px){main{grid-template-columns:1fr}}
+@media(max-width:800px){main{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:700px){
  header{padding:20px 16px 52px;border-radius:0 0 22px 22px}
  h1{font-size:19px}

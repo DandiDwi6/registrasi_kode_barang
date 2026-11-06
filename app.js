@@ -185,6 +185,13 @@ function drawCode(root,it){
 /* ================= ukuran label ================= */
 const LSS='kode-barang-size-v1';
 const A4W=190,A4H=277; // area cetak A4 setelah margin 10 mm
+function fitLabel(){ // perkecil preview agar muat di layar sempit (hasil cetak tidak terpengaruh)
+  const L=$('label'),box=L.parentElement;
+  L.style.zoom='';
+  const avail=box.clientWidth-28,w=L.offsetWidth;
+  if(avail>0&&w>avail)L.style.zoom=(avail/w).toFixed(3);
+}
+window.addEventListener('resize',fitLabel);
 function applySize(save){
   let v=$('lblSize').value,w,h;
   if(v==='custom'){w=+$('lblW').value||60;h=+$('lblH').value||40}
@@ -211,6 +218,7 @@ function applySize(save){
   document.documentElement.dataset.lsz=mode;
   $('lblDim').textContent=f(w)+' × '+f(h)+' mm';
   $('perSheet').textContent=PER_SHEET+' label / lembar A4';
+  fitLabel();
   if(save){try{localStorage.setItem(LSS,JSON.stringify({v,w:$('lblW').value,h:$('lblH').value}))}catch(e){}}
 }
 function loadSize(){
