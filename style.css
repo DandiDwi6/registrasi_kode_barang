@@ -27,6 +27,22 @@ html{scroll-padding-top:env(safe-area-inset-top,0px)}
 [hidden]{display:none!important}
 body{margin:0;background-color:var(--bg);background-image:var(--bgimg);background-attachment:fixed;color:var(--tx);font:14.5px/1.5 var(--sans);-webkit-font-smoothing:antialiased}
 
+
+/* ---- latar bergerak: peralatan ---- */
+.bgfx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.ic{position:absolute;display:block;color:var(--ac);opacity:.2;animation:drift var(--d,30s) ease-in-out var(--dl,0s) infinite alternate;will-change:transform}
+.ic svg{display:block;width:var(--s,100px);height:var(--s,100px);fill:none;stroke:currentColor;stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+.ic svg.spin{animation:spin var(--sd,40s) linear infinite}
+.ic svg.spin.rev{animation-direction:reverse}
+@keyframes drift{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(var(--dx,30px),var(--dy,30px),0) rotate(var(--r,30deg))}}
+@keyframes spin{to{transform:rotate(360deg)}}
+header,main{z-index:1}
+header{position:relative}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ic{opacity:.16}}
+:root[data-theme="dark"] .ic{opacity:.16}
+@media (prefers-reduced-motion:reduce){.ic,.ic svg.spin{animation:none}}
+@media print{.bgfx{display:none!important}}
+
 /* ---- header ---- */
 header{padding:26px max(20px,calc((100% - 1060px)/2)) 62px;border-radius:0 0 28px 28px;
  background:radial-gradient(620px 240px at 90% 0%,rgba(108,196,255,.38),transparent 70%),linear-gradient(120deg,var(--nav),#0f5cc0 68%,#2a8cf0)}

@@ -13,6 +13,35 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+ <defs>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" stroke-width="3.2" stroke-dasharray="3.36 3.36"/><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2.6"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M12 22v-5M9 8V2M15 8V2M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/></symbol>
+  <symbol id="i-meter" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2.5"/><rect x="8" y="5" width="8" height="5" rx="1"/><circle cx="12" cy="16" r="2.6"/><path d="M12 13.4v1.2M8.5 19.5h.01M15.5 19.5h.01"/></symbol>
+  <symbol id="i-nut" viewBox="0 0 24 24"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><circle cx="12" cy="12" r="3.2"/></symbol>
+  <symbol id="i-driver" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="9" rx="2.5"/><path d="M12 11v11M11 22h2"/></symbol>
+ </defs>
+</svg>
+<div class="bgfx" aria-hidden="true">
+ <i class="ic" style="left:3%;top:10%;--s:150px;--dx:30px;--dy:40px;--r:30deg;--d:30s;--dl:0s"><svg class="spin" style="--sd:40s"><use href="#i-gear"/></svg></i>
+ <i class="ic" style="left:9%;top:52%;--s:120px;--dx:40px;--dy:-30px;--r:60deg;--d:34s;--dl:-6s"><svg><use href="#i-wrench"/></svg></i>
+ <i class="ic" style="left:90%;top:12%;--s:110px;--dx:-30px;--dy:50px;--r:-40deg;--d:28s;--dl:-3s"><svg><use href="#i-bolt"/></svg></i>
+ <i class="ic" style="left:85%;top:50%;--s:120px;--dx:-40px;--dy:-30px;--r:50deg;--d:36s;--dl:-10s"><svg><use href="#i-plug"/></svg></i>
+ <i class="ic" style="left:92%;top:78%;--s:130px;--dx:-30px;--dy:-40px;--r:-30deg;--d:38s;--dl:-8s"><svg><use href="#i-meter"/></svg></i>
+ <i class="ic" style="left:6%;top:84%;--s:90px;--dx:30px;--dy:-40px;--r:90deg;--d:32s;--dl:-4s"><svg class="spin" style="--sd:55s"><use href="#i-nut"/></svg></i>
+ <i class="ic" style="left:2%;top:34%;--s:110px;--dx:30px;--dy:30px;--r:-60deg;--d:35s;--dl:-12s"><svg><use href="#i-driver"/></svg></i>
+ <i class="ic" style="left:80%;top:32%;--s:80px;--dx:-20px;--dy:30px;--r:0deg;--d:26s;--dl:-2s"><svg class="spin rev" style="--sd:30s"><use href="#i-gear"/></svg></i>
+ <i class="ic" style="left:17%;top:27%;--s:60px;--dx:20px;--dy:40px;--r:30deg;--d:24s;--dl:-7s"><svg><use href="#i-bolt"/></svg></i>
+ <i class="ic" style="left:76%;top:88%;--s:70px;--dx:-30px;--dy:-20px;--r:-90deg;--d:30s;--dl:-9s"><svg class="spin" style="--sd:45s"><use href="#i-nut"/></svg></i>
+ <i class="ic" style="left:72%;top:5%;--s:90px;--dx:-30px;--dy:30px;--r:-50deg;--d:33s;--dl:-5s"><svg><use href="#i-wrench"/></svg></i>
+ <i class="ic" style="left:20%;top:90%;--s:80px;--dx:40px;--dy:-30px;--r:40deg;--d:31s;--dl:-11s"><svg><use href="#i-plug"/></svg></i>
+ <i class="ic" style="left:15%;top:6%;--s:100px;--dx:30px;--dy:40px;--r:30deg;--d:36s;--dl:-14s"><svg><use href="#i-meter"/></svg></i>
+ <i class="ic" style="left:60%;top:92%;--s:100px;--dx:-20px;--dy:-30px;--r:0deg;--d:29s;--dl:-1s"><svg class="spin" style="--sd:50s"><use href="#i-gear"/></svg></i>
+ <i class="ic" style="left:95%;top:95%;--s:90px;--dx:-30px;--dy:-30px;--r:70deg;--d:34s;--dl:-13s"><svg><use href="#i-driver"/></svg></i>
+ <i class="ic" style="left:48%;top:3%;--s:70px;--dx:30px;--dy:30px;--r:-30deg;--d:27s;--dl:-6s"><svg><use href="#i-bolt"/></svg></i>
+</div>
 <header>
  <h1>Registrasi Kode Barang</h1>
  <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
