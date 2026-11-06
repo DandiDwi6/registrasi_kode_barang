@@ -4,74 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Registrasi Kode Barang</title>
+<link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
-<style>
-:root{--bg:#f4f6f9;--card:#fff;--tx:#14202e;--mu:#5d6b7c;--bd:#d9e0e8;--ac:#0b5cab;--ac2:#e8f1fb;--ok:#127a4a;--er:#b3261e;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161d;--card:#18212b;--tx:#e8edf3;--mu:#98a6b6;--bd:#2c3846;--ac:#5aa6ee;--ac2:#1b2c40;--ok:#4cc38a;--er:#ff8a80}}
-:root[data-theme="dark"]{--bg:#10161d;--card:#18212b;--tx:#e8edf3;--mu:#98a6b6;--bd:#2c3846;--ac:#5aa6ee;--ac2:#1b2c40;--ok:#4cc38a;--er:#ff8a80}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:18px 20px 6px;max-width:1100px;margin:auto}
-h1{font-size:21px;margin:0}
-header p{margin:2px 0 0;color:var(--mu);font-size:13px}
-main{max-width:1100px;margin:auto;padding:12px 20px 40px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-@media(max-width:800px){main{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
-.card h2{font-size:15px;margin:0 0 12px}
-.full{grid-column:1/-1}
-label{display:block;font-size:12px;color:var(--mu);margin:10px 0 4px}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);outline-offset:-1px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.cat{border:1.5px solid var(--bd);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;background:var(--bg);color:var(--tx);font:inherit}
-.cat b{display:block;font-size:15px}.cat small{color:var(--mu);font-size:11px}
-.cat.on{border-color:var(--ac);background:var(--ac2)}
-.prev{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--ac2);display:flex;justify-content:space-between;align-items:center}
-.prev span{font-size:12px;color:var(--mu)}.prev code{font:700 18px ui-monospace,Menlo,Consolas,monospace;color:var(--ac)}
-button.btn{padding:10px 16px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:600 14px inherit;cursor:pointer}
-button.btn.sec{background:var(--ac2);color:var(--ac)}
-button.btn.dg{background:transparent;color:var(--er);padding:4px 8px}
-.acts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-#msg{font-size:13px;margin-top:8px;min-height:18px}
-#stat{font-size:12px;color:var(--mu);margin-left:auto}
-.lblwrap{display:flex;justify-content:center;padding:10px 0;background:var(--bg);border-radius:10px;overflow-x:auto}
-#label{width:75mm;height:45mm;background:#fff;color:#000;border:1.5px solid #000;padding:2mm 3mm;display:flex;flex-direction:column;font-family:Arial,sans-serif;flex:none}
-#label .h{display:flex;justify-content:space-between;font-size:7pt;font-weight:700;border-bottom:1px solid #000;padding-bottom:1mm}
-#label .c{font:700 14pt ui-monospace,Menlo,Consolas,monospace;text-align:center;margin-top:1mm;letter-spacing:.5px}
-#label svg{width:100%;height:11mm;margin-top:.5mm}
-#label .d{font-size:7pt;line-height:1.3;margin-top:auto}
-#label .d b{font-size:8.5pt}
-.empty{color:var(--mu);font-size:13px;text-align:center;padding:30px 0}
-.tools{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
-.tools input{max-width:260px}.tools select{max-width:160px}
-.tw{overflow-x:auto}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
-th{color:var(--mu);font-weight:600;font-size:12px}
-td.code{font:600 13px ui-monospace,Menlo,Consolas,monospace;color:var(--ac)}
-@page{size:auto;margin:6mm}
-@media print{
- body *{visibility:hidden}
- #label,#label *{visibility:visible}
- #label{position:absolute;left:0;top:0}
- body{background:#fff}
-}
-</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 <header>
  <h1>Registrasi Kode Barang</h1>
- <p>BU Services Electrical High Voltage · isi data, kode otomatis, cetak label tempel</p>
+ <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
 </header>
 <main>
  <section class="card">
   <h2>1. Data barang</h2>
+  <div id="editbar" class="editbar" hidden>
+   <span>Mode edit: <b id="editkode"></b></span>
+   <button type="button" class="btn dg" id="batal">Batal</button>
+  </div>
   <label>Klasifikasi</label>
   <div class="cats" id="cats"></div>
-  <div class="prev"><span>Kode berikutnya</span><code id="nextCode">-</code></div>
+  <div class="catadd" id="catAdd" hidden>
+   <div class="row">
+    <div><label for="ncKode">Kode (2–4 huruf/angka)</label><input id="ncKode" maxlength="4" placeholder="mis. SFT" autocapitalize="characters"></div>
+    <div><label for="ncNama">Nama klasifikasi</label><input id="ncNama" placeholder="mis. APD / Safety"></div>
+   </div>
+   <div class="acts">
+    <button type="button" class="btn" id="ncOk">Tambah klasifikasi</button>
+    <button type="button" class="btn sec" id="ncBatal">Batal</button>
+   </div>
+  </div>
+  <button type="button" class="linkbtn" id="catDel" hidden>Hapus klasifikasi ini (belum dipakai)</button>
+  <div class="prev"><span id="nextLbl">Kode berikutnya</span><code id="nextCode">-</code></div>
   <label>Nama barang *</label>
   <input id="nama" placeholder="mis. Insulation Tester / Torque Wrench / Kabel NYY">
   <div class="row">
@@ -91,129 +53,119 @@ td.code{font:600 13px ui-monospace,Menlo,Consolas,monospace;color:var(--ac)}
    <div><label>PIC / Penanggung jawab</label><input id="pic"></div>
    <div><label>Tgl registrasi</label><input id="tgl" type="date"></div>
   </div>
+  <details id="kalBox" class="kal">
+   <summary>Kalibrasi (opsional)</summary>
+   <div class="row">
+    <div><label>Kalibrasi terakhir</label><input id="kalLast" type="date"></div>
+    <div><label>Interval (bulan)</label><input id="kalInt" type="number" min="1" max="120" placeholder="mis. 12"></div>
+   </div>
+   <div class="row">
+    <div><label>Jadwal berikutnya</label><input id="kalNext" type="date"></div>
+    <div><label>No. sertifikat</label><input id="kalNo"></div>
+   </div>
+   <p class="hint">Jadwal berikutnya terisi otomatis dari tanggal terakhir + interval, dan masih bisa diubah manual.</p>
+  </details>
   <label>Keterangan</label>
   <textarea id="ket" rows="2"></textarea>
   <div class="acts">
    <button class="btn" id="simpan">Simpan &amp; buat label</button>
    <button class="btn sec" id="reset">Kosongkan</button>
   </div>
-  <div id="msg"></div>
+  <div id="msg" role="status"></div>
  </section>
 
  <section class="card">
   <h2>2. Label cetak (75 × 45 mm)</h2>
-  <div class="lblwrap"><div id="label"></div></div>
+  <div class="lblwrap"><div id="label" class="lbl"></div></div>
   <div class="acts">
+   <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
+   <div class="fmt"><label for="lblFmt">Jenis kode</label><select id="lblFmt"><option value="bc">Barcode</option><option value="qr">QR code</option></select></div>
    <button class="btn" id="cetak">Cetak label</button>
   </div>
-  <p style="font-size:12px;color:var(--mu);margin:10px 0 0">Saat dialog cetak muncul: pilih printer label / kertas stiker, skala 100%, margin default. Untuk jumlah &gt; 1 atur jumlah salinan di dialog cetak.</p>
+
+  <p class="hint">Ukuran kertas cetak otomatis 75 × 45 mm tanpa margin. Pilih printer label / kertas stiker dan skala 100%. Jumlah salinan terisi otomatis sesuai "Jumlah" barang, bisa diubah.</p>
  </section>
 
  <section class="card full">
-  <h2 style="display:flex;align-items:center">3. Database barang <span id="stat"></span></h2>
+  <h2 class="h2flex">3. Database barang <span id="stat"></span></h2>
+  <div class="chips" id="alerts"></div>
   <div class="tools">
-   <input id="cari" placeholder="Cari kode / nama / S/N / lokasi">
+   <input id="cari" placeholder="Cari kode / nama / S/N / lokasi / peminjam">
    <select id="fkat"><option value="">Semua klasifikasi</option></select>
+   <select id="fstat">
+    <option value="">Semua status</option>
+    <option value="lewat">Kalibrasi lewat</option>
+    <option value="segera">Kalibrasi ≤ 30 hari</option>
+    <option value="pinjam">Sedang dipinjam</option>
+    <option value="telat">Telat kembali</option>
+    <option value="tersedia">Tersedia</option>
+   </select>
+   <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
+   <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
+   <button class="btn sec" id="csvImp">Impor CSV</button>
    <button class="btn sec" id="csv">Ekspor CSV</button>
+   <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
   </div>
   <div class="tw"><table>
-   <thead><tr><th>Kode</th><th>Klasifikasi</th><th>Nama barang</th><th>Merk / Tipe</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Tgl</th><th></th></tr></thead>
+   <thead><tr><th><input type="checkbox" id="selAll" aria-label="Pilih semua"></th><th>Kode</th><th>Klasifikasi</th><th>Nama barang</th><th>Merk / Tipe</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Kalibrasi</th><th>Status</th><th>Tgl</th><th></th></tr></thead>
    <tbody id="rows"></tbody>
   </table></div>
   <div class="empty" id="empty" hidden>Belum ada data.</div>
  </section>
 </main>
 
-<script>
-const CATS={TST:{n:'Alat Test',s:'TST'},MEK:{n:'Mekanikal',s:'MEK'},ELC:{n:'Electrical',s:'ELC'}};
-const BU='HV';
-const $=id=>document.getElementById(id);
-let cat='TST',items=[],col=null,lastItem=null;
-const LS='kode-barang-v1';
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const today=()=>new Date().toISOString().slice(0,10);
-$('tgl').value=today();
+<dialog id="dlgPinjam">
+ <form id="fPinjam">
+  <h3>Pinjamkan <span id="pjKode"></span></h3>
+  <p class="hint" id="pjNama"></p>
+  <div class="warn" id="pjWarn" hidden></div>
+  <label for="pjOleh">Peminjam *</label><input id="pjOleh">
+  <label for="pjProyek">Proyek / lokasi tujuan</label><input id="pjProyek">
+  <div class="row">
+   <div><label for="pjTgl">Tgl pinjam</label><input id="pjTgl" type="date"></div>
+   <div><label for="pjRen">Rencana kembali</label><input id="pjRen" type="date"></div>
+  </div>
+  <label for="pjCat">Catatan</label><input id="pjCat">
+  <div class="err" id="pjErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit">Pinjamkan</button>
+   <button class="btn sec" type="button" data-close="dlgPinjam">Batal</button>
+  </div>
+ </form>
+</dialog>
 
-function yy(d){return (d||today()).slice(2,4)}
-function nextCode(){
-  const y=yy($('tgl').value),pre=`${BU}-${cat}-${y}-`;
-  let max=0;
-  items.forEach(i=>{if(i.kode&&i.kode.startsWith(pre)){const n=parseInt(i.kode.slice(pre.length),10);if(n>max)max=n}});
-  return pre+String(max+1).padStart(4,'0');
-}
-function drawCats(){
-  $('cats').innerHTML=Object.entries(CATS).map(([k,v])=>`<button type="button" class="cat ${k===cat?'on':''}" data-k="${k}"><b>${v.n}</b><small>${BU}-${k}-…</small></button>`).join('');
-  $('cats').querySelectorAll('.cat').forEach(b=>b.onclick=()=>{cat=b.dataset.k;drawCats();$('nextCode').textContent=nextCode()});
-}
-function label(it){
-  const L=$('label');
-  if(!it){L.innerHTML='<div class="empty" style="margin:auto;color:#666">Label muncul setelah barang disimpan</div>';return}
-  L.innerHTML=`<div class="h"><span>ASSET TAG · BU SERVICES ELECTRICAL HV</span><span>${esc(CATS[it.kat]?.n||'')}</span></div>
-  <div class="c">${esc(it.kode)}</div><svg id="bc"></svg>
-  <div class="d"><b>${esc(it.nama)}</b><br>${esc([it.merk,it.tipe].filter(Boolean).join(' / '))}${it.sn?' · S/N '+esc(it.sn):''}<br>Lokasi: ${esc(it.lokasi||'-')} · Reg: ${esc(it.tgl||'')}</div>`;
-  try{JsBarcode('#bc',it.kode,{format:'CODE128',displayValue:false,margin:0,height:40,width:2})}catch(e){}
-}
-function render(){
-  const q=$('cari').value.toLowerCase(),f=$('fkat').value;
-  const list=items.filter(i=>(!f||i.kat===f)&&(!q||[i.kode,i.nama,i.sn,i.lokasi,i.merk,i.tipe].join(' ').toLowerCase().includes(q)))
-    .sort((a,b)=>b.kode.localeCompare(a.kode));
-  $('rows').innerHTML=list.map(i=>`<tr><td class="code">${esc(i.kode)}</td><td>${esc(CATS[i.kat]?.n)}</td><td>${esc(i.nama)}</td><td>${esc([i.merk,i.tipe].filter(Boolean).join(' / '))}</td><td>${esc(i.sn)}</td><td>${esc(i.lokasi)}</td><td>${esc(i.kondisi)}</td><td>${esc(i.tgl)}</td>
-  <td><button class="btn sec" data-p="${esc(i.kode)}">Label</button> <button class="btn dg" data-d="${esc(i.kode)}">Hapus</button></td></tr>`).join('');
-  $('empty').hidden=list.length>0;
-  $('stat').textContent=items.length+' barang tersimpan';
-  $('nextCode').textContent=nextCode();
-}
-$('rows').onclick=async e=>{
-  const p=e.target.dataset.p,d=e.target.dataset.d;
-  if(p){lastItem=items.find(i=>i.kode===p);label(lastItem);$('label').scrollIntoView({behavior:'smooth',block:'center'})}
-  if(d&&confirm('Hapus '+d+' dari database?')){
-    try{ if(col)await col.doc(d).delete(); else {items=items.filter(i=>i.kode!==d);localStorage.setItem(LS,JSON.stringify(items));render()} }
-    catch(err){msg('Gagal menghapus (hak akses?).',1)}
-  }
-};
-function msg(t,er){const m=$('msg');m.textContent=t;m.style.color=er?'var(--er)':'var(--ok)'}
-$('simpan').onclick=async()=>{
-  const nama=$('nama').value.trim();
-  if(!nama){msg('Nama barang wajib diisi.',1);$('nama').focus();return}
-  const kode=nextCode();
-  const it={kode,kat:cat,nama,merk:$('merk').value.trim(),tipe:$('tipe').value.trim(),sn:$('sn').value.trim(),qty:+$('qty').value||1,
-    lokasi:$('lok').value.trim(),kondisi:$('kon').value,pic:$('pic').value.trim(),tgl:$('tgl').value||today(),ket:$('ket').value.trim(),dibuat:Date.now()};
-  try{
-    if(col)await col.doc(kode).set(it);
-    else{items.push(it);localStorage.setItem(LS,JSON.stringify(items));render()}
-    lastItem=it;label(it);msg('Tersimpan: '+kode);
-    ['nama','merk','tipe','sn','ket'].forEach(k=>$(k).value='');$('qty').value=1;
-  }catch(err){msg('Gagal menyimpan: '+(err&&err.message||'hak akses tidak cukup'),1)}
-};
-$('reset').onclick=()=>{['nama','merk','tipe','sn','lok','pic','ket'].forEach(k=>$(k).value='');$('qty').value=1;msg('')};
-$('cetak').onclick=()=>{if(!lastItem){msg('Simpan barang dulu atau pilih "Label" dari tabel.',1);return}window.print()};
-$('tgl').onchange=()=>$('nextCode').textContent=nextCode();
-$('cari').oninput=render;$('fkat').onchange=render;
-$('fkat').innerHTML+=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
-$('csv').onclick=async()=>{
-  const h=['kode','kat','nama','merk','tipe','sn','qty','lokasi','kondisi','pic','tgl','ket'];
-  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const data='\ufeff'+[h.join(',')].concat(items.map(i=>h.map(k=>q(k==='kat'?CATS[i.kat]?.n:i[k])).join(','))).join('\n');
-  try{const dl=await claude.use('downloads');if(!dl){msg('Ekspor tidak tersedia di sini.',1);return}await dl.save({filename:'database-kode-barang.csv',data})}
-  catch(e){msg('Ekspor dibatalkan.',1)}
-};
-async function init(){
-  drawCats();label(null);render();
-  let db=null;
-  try{db=await claude.use('db')}catch(e){}
-  if(db){
-    col=db.collection('items');
-    $('stat').textContent='memuat database…';
-    const t=setTimeout(()=>{$('stat').textContent='database belum terjangkau, data bisa usang'},10000);
-    col.onSnapshot(s=>{clearTimeout(t);items=(s.docs||[]).map(d=>Object.assign({},d.data(),{kode:d.id}));render()},
-      e=>{clearTimeout(t);$('stat').textContent='gagal memuat database'});
-  }else{
-    try{items=JSON.parse(localStorage.getItem(LS)||'[]')}catch(e){}
-    render();
-    $('stat').textContent=items.length+' barang (penyimpanan lokal browser)';
-  }
-}
-init();
-</script>
+<dialog id="dlgKembali">
+ <form id="fKembali">
+  <h3>Kembalikan <span id="kbKode"></span></h3>
+  <p class="hint" id="kbInfo"></p>
+  <div class="row">
+   <div><label for="kbTgl">Tgl kembali</label><input id="kbTgl" type="date"></div>
+   <div><label for="kbKon">Kondisi saat kembali</label><select id="kbKon"></select></div>
+  </div>
+  <label for="kbCat">Catatan</label><input id="kbCat">
+  <div class="err" id="kbErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit">Tandai dikembalikan</button>
+   <button class="btn sec" type="button" data-close="dlgKembali">Batal</button>
+  </div>
+ </form>
+</dialog>
+
+<dialog id="dlgDetail">
+ <h3 id="dtKode"></h3>
+ <div id="dtBody"></div>
+ <div class="acts" id="dtActs"></div>
+</dialog>
+
+<dialog id="dlgRiwayat">
+ <h3>Riwayat peminjaman <span id="rwKode"></span></h3>
+ <div id="rwBody"></div>
+ <div class="acts"><button class="btn sec" type="button" data-close="dlgRiwayat">Tutup</button></div>
+</dialog>
+
+<div id="printArea" aria-hidden="true"></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
