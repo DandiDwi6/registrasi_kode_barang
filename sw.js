@@ -2,13 +2,14 @@
    - File aplikasi: jaringan dulu (agar update langsung terbaca), cadangan dari cache saat offline.
    - Library/font dari CDN: cache lalu perbarui diam-diam.
    - Panggilan ke Google Apps Script (data) TIDAK pernah di-cache. */
-const VER = 'kb-v1';
+const VER = 'kb-v2';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.png'];
 const EXT = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VER).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // satu file gagal (mis. belum terupload) tidak boleh membatalkan instalasi service worker
+  e.waitUntil(caches.open(VER).then(c => Promise.all(SHELL.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
