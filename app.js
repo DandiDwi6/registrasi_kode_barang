@@ -9,8 +9,6 @@ const $=id=>document.getElementById(id);
 const CATS={};
 Object.entries(BASE_CATS).forEach(([k,n])=>CATS[k]={n});
 let cat='TST',items=[],col=null,lastItem=null,editing=null,dlgKode=null;
-const LSF='kode-barang-fmt';
-let lblFmt='bc';try{lblFmt=localStorage.getItem(LSF)==='qr'?'qr':'bc'}catch(e){}
 const sel=new Set();let visible=[]; // sel = kode yang dicentang, visible = kode pada tabel saat ini
 const LSQ='kode-barang-qr-v1';
 let qrMode='link',qrBase='',loaded=false; // loaded = data sudah selesai dimuat
@@ -144,7 +142,7 @@ function statusMatch(it,st){
 }
 
 /* ================= label ================= */
-const useQR=()=>lblFmt==='qr'&&typeof qrcode!=='undefined';
+const useQR=()=>typeof qrcode!=='undefined'; // label selalu QR; teks saja jika library QR gagal dimuat
 const ascii=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E\n]/g,'?'); // QR teks: aman untuk semua pembaca
 const defaultBase=()=>{try{return /^https?:$/.test(location.protocol)?location.href.replace(/#.*$/,''):''}catch(e){return ''}};
 const baseURL=()=>{const b=(qrBase||defaultBase()).trim().replace(/#.*$/,'');return /^https?:\/\/\S+$/i.test(b)?b:''};
@@ -165,7 +163,7 @@ function labelHTML(it){
   const head=`<div class="h"><span>ASSET TAG</span><span>${esc(catName(it.kat))}</span></div>`;
   const mk=esc([it.merk,it.tipe].filter(Boolean).join(' / ')),sn=it.sn?' · S/N '+esc(it.sn):'';
   if(useQR())return head+`<div class="q"><div class="qr"></div><div class="qd"><div class="c">${esc(it.kode)}</div><b>${esc(it.nama)}</b><span>${mk}${sn}</span><span>Lokasi: ${esc(it.lokasi||'-')}</span><span>Reg: ${esc(it.tgl||'')}</span></div></div>`;
-  return head+`<div class="c">${esc(it.kode)}</div><svg></svg>
+  return head+`<div class="c">${esc(it.kode)}</div>
   <div class="d"><b>${esc(it.nama)}</b><br>${mk}${sn}<br>Lokasi: ${esc(it.lokasi||'-')} · Reg: ${esc(it.tgl||'')}</div>`;
 }
 function drawCode(root,it){
@@ -182,10 +180,7 @@ function drawCode(root,it){
       s.removeAttribute('width');s.removeAttribute('height');
       s.setAttribute('preserveAspectRatio','xMidYMid meet');
     }catch(e){}
-    return;
   }
-  const s=root.querySelector('svg');
-  try{JsBarcode(s,kode,{format:'CODE128',displayValue:false,margin:0,height:40,width:2});s.setAttribute('preserveAspectRatio','none')}catch(e){}
 }
 function label(it){
   const L=$('label');
@@ -194,12 +189,17 @@ function label(it){
   drawCode(L,it);
   $('copies').value=Math.min(99,Math.max(1,it.qty||1));
 }
+const PER_SHEET=12; // A4: 2 kolom x 6 baris
 function printBatch(list){ // list: [{it, n}]
   const total=list.reduce((a,x)=>a+x.n,0);
   if(!total)return;
   if(total>200&&!confirm('Akan mencetak '+total+' label. Lanjutkan?'))return;
   const pa=$('printArea');pa.innerHTML='';
-  list.forEach(({it,n})=>{for(let i=0;i<n;i++){const d=document.createElement('div');d.className='lbl';d.innerHTML=labelHTML(it);pa.appendChild(d);drawCode(d,it)}});
+  let sheet=null,count=0;
+  list.forEach(({it,n})=>{for(let i=0;i<n;i++){
+    if(count%PER_SHEET===0){sheet=document.createElement('div');sheet.className='sheet';pa.appendChild(sheet)}
+    const d=document.createElement('div');d.className='lbl';d.innerHTML=labelHTML(it);sheet.appendChild(d);drawCode(d,it);count++;
+  }});
   window.print();
 }
 function printLabels(){
@@ -492,12 +492,6 @@ $('rows').addEventListener('change',e=>{
   updateBulk();
 });
 $('selAll').onchange=e=>{visible.forEach(k=>{if(e.target.checked)sel.add(k);else sel.delete(k)});render()};
-$('lblFmt').onchange=()=>{
-  lblFmt=$('lblFmt').value;
-  try{localStorage.setItem(LSF,lblFmt)}catch(e){}
-  syncQrOpt();
-  label(lastItem);
-};
 $('tgl').onchange=showNext;
 $('cari').oninput=render;$('fkat').onchange=render;$('fstat').onchange=render;
 
@@ -591,10 +585,7 @@ $('csvIn').onchange=async e=>{
 /* ================= init ================= */
 async function init(){
   loadCustomCats();
-  if(typeof qrcode==='undefined'){ // library QR gagal dimuat (offline / diblokir) -> kembali ke barcode
-    lblFmt='bc';$('lblFmt').querySelector('option[value="qr"]').disabled=true;
-  }
-  $('lblFmt').value=lblFmt;
+  if(typeof qrcode==='undefined')msg('Library QR gagal dimuat (periksa koneksi internet). Label sementara hanya berisi teks.',1);
   drawFilter();drawCats();label(null);render();
   if(API){
     col=true; // penanda mode database bersama

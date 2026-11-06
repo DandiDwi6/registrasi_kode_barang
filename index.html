@@ -4,8 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Registrasi Kode Barang</title>
+<meta name="theme-color" content="#0c2340">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f5a623'/%3E%3Cpath fill='%230c2340' d='M13.2 3 6 13h4.8L10 21l8-10.4h-5z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
@@ -79,11 +83,10 @@
   <div class="lblwrap"><div id="label" class="lbl"></div></div>
   <div class="acts">
    <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
-   <div class="fmt"><label for="lblFmt">Jenis kode</label><select id="lblFmt"><option value="bc">Barcode</option><option value="qr">QR code</option></select></div>
    <button class="btn" id="cetak">Cetak label</button>
   </div>
 
-  <p class="hint">Ukuran kertas cetak otomatis 75 × 45 mm tanpa margin. Pilih printer label / kertas stiker dan skala 100%. Jumlah salinan terisi otomatis sesuai "Jumlah" barang, bisa diubah.</p>
+  <p class="hint">Label dicetak di kertas A4: 2 kolom × 6 baris = 12 label per lembar (margin 10 mm). Pilih skala 100% di dialog cetak, lalu potong mengikuti garis tepi label. Jumlah salinan terisi otomatis sesuai "Jumlah" barang, bisa diubah.</p>
  </section>
 
  <section class="card full">
