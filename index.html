@@ -51,7 +51,7 @@
 <header>
  <h1>Registrasi Kode Barang</h1>
  <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
- <button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button>
+ <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
 </header>
 <main>
  <section class="card">
@@ -189,21 +189,56 @@
 </main>
 <footer class="foot">Registrasi Kode Barang · data tersimpan aman di Google Sheets</footer>
 
+<button type="button" class="fab" id="scanFab" aria-label="Scan QR label"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></button>
+
+<dialog id="dlgScan">
+ <div class="dhead">
+  <i class="dico"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></i>
+  <div><h3>Scan QR label</h3><p class="dsubt">Arahkan kamera ke QR pada label barang</p></div>
+ </div>
+ <div class="scanbox"><video id="scVideo" playsinline muted></video><div class="scframe"></div><div class="scline"></div></div>
+ <div class="err" id="scErr"></div>
+ <form id="scForm" class="scmanual">
+  <input id="scManual" placeholder="atau ketik kode, mis. HV-TST-26-0001" autocapitalize="characters" autocomplete="off">
+  <button class="btn sec" type="submit">Buka</button>
+ </form>
+ <div class="acts">
+  <button class="btn sec" type="button" id="scTorch" hidden>Senter</button>
+  <button class="btn sec" type="button" data-close="dlgScan">Tutup</button>
+ </div>
+</dialog>
+
 <dialog id="dlgPinjam">
  <form id="fPinjam">
-  <h3>Pinjamkan <span id="pjKode"></span></h3>
-  <p class="hint" id="pjNama"></p>
+  <div class="dhead">
+   <i class="dico"><svg viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i>
+   <div><h3>Pinjamkan barang</h3><p class="dsubt"><code id="pjKode"></code></p></div>
+  </div>
+  <div class="itemcard"><b id="pjNama"></b><div class="meta" id="pjMeta"></div></div>
   <div class="warn" id="pjWarn" hidden></div>
-  <label for="pjOleh">Peminjam *</label><input id="pjOleh">
-  <label for="pjProyek">Proyek / lokasi tujuan</label><input id="pjProyek">
+
+  <label for="pjOleh">Peminjam *</label>
+  <input id="pjOleh" list="pjOlehList" autocomplete="off" placeholder="Nama peminjam">
+  <datalist id="pjOlehList"></datalist>
+  <div class="qchips" id="pjRecent"></div>
+
+  <label for="pjProyek">Proyek / lokasi tujuan</label>
+  <input id="pjProyek" list="pjProyekList" autocomplete="off" placeholder="mis. GI Cibabat">
+  <datalist id="pjProyekList"></datalist>
+
   <div class="row">
    <div><label for="pjTgl">Tgl pinjam</label><input id="pjTgl" type="date"></div>
    <div><label for="pjRen">Rencana kembali</label><input id="pjRen" type="date"></div>
   </div>
-  <label for="pjCat">Catatan</label><input id="pjCat">
+  <div class="qchips" id="pjQuick"></div>
+  <p class="durinfo" id="pjDur"></p>
+
+  <label for="pjCat">Catatan</label>
+  <input id="pjCat" placeholder="mis. untuk pengukuran panel">
+  <label class="chk"><input type="checkbox" id="pjPrint"> Cetak form peminjaman (untuk tanda tangan) setelah disimpan</label>
   <div class="err" id="pjErr"></div>
   <div class="acts">
-   <button class="btn" type="submit">Pinjamkan</button>
+   <button class="btn" type="submit" id="pjOk">Pinjamkan</button>
    <button class="btn sec" type="button" data-close="dlgPinjam">Batal</button>
   </div>
  </form>
@@ -211,13 +246,16 @@
 
 <dialog id="dlgKembali">
  <form id="fKembali">
-  <h3>Kembalikan <span id="kbKode"></span></h3>
-  <p class="hint" id="kbInfo"></p>
+  <div class="dhead">
+   <i class="dico"><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></i>
+   <div><h3>Kembalikan barang</h3><p class="dsubt"><code id="kbKode"></code></p></div>
+  </div>
+  <div class="itemcard"><span id="kbInfo"></span></div>
   <div class="row">
    <div><label for="kbTgl">Tgl kembali</label><input id="kbTgl" type="date"></div>
    <div><label for="kbKon">Kondisi saat kembali</label><select id="kbKon"></select></div>
   </div>
-  <label for="kbCat">Catatan</label><input id="kbCat">
+  <label for="kbCat">Catatan</label><input id="kbCat" placeholder="mis. kabel probe longgar">
   <div class="err" id="kbErr"></div>
   <div class="acts">
    <button class="btn" type="submit">Tandai dikembalikan</button>

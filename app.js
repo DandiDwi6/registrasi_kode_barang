@@ -358,9 +358,10 @@ function render(){
       b:'<path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/>',
       k:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/>',
       r:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      f:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
       d:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'};
     return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
-    <td class="aksi">${ib('data-p','sec','Cetak label',IC.p,'Label')}${ib('data-e','sec','Edit',IC.e,'Edit')}${i.pinjam?ib('data-k','sec','Kembalikan',IC.k,'Kembalikan'):ib('data-b','sec','Pinjamkan',IC.b,'Pinjam')}${hasHist?ib('data-r','sec','Riwayat',IC.r,'Riwayat'):''}${ib('data-d','dg','Hapus',IC.d,'Hapus')}</td></tr>`;
+    <td class="aksi">${ib('data-p','sec','Cetak label',IC.p,'Label')}${ib('data-e','sec','Edit',IC.e,'Edit')}${i.pinjam?ib('data-k','sec','Kembalikan',IC.k,'Kembalikan'):ib('data-b','sec','Pinjamkan',IC.b,'Pinjam')}${i.pinjam?ib('data-j','sec','Cetak form peminjaman',IC.f,'Form'):''}${hasHist?ib('data-r','sec','Riwayat',IC.r,'Riwayat'):''}${ib('data-d','dg','Hapus',IC.d,'Hapus')}</td></tr>`;
   }).join('');
   $('empty').hidden=list.length>0;
   $('moreWrap').hidden=rest<=0;
@@ -374,7 +375,8 @@ function render(){
 }
 $('rows').onclick=async e=>{
   const b=e.target.closest('button');if(!b)return;
-  const {p,e:ed,b:bw,k:kb,r,d}=b.dataset;
+  const {p,e:ed,b:bw,k:kb,r,d,j}=b.dataset;
+  if(j)printLoanForm(j);
   if(p){lastItem=items.find(i=>i.kode===p);label(lastItem);render();$('label').scrollIntoView({behavior:'smooth',block:'center'})}
   if(ed)startEdit(ed);
   if(bw)openPinjam(bw);
@@ -460,11 +462,172 @@ $('simpan').onclick=async()=>{
 /* ================= pinjam / kembali / riwayat ================= */
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 
+const addDays=(d0,n)=>{const d=new Date(d0+'T00:00:00');d.setDate(d.getDate()+n);return fmt(d)};
+const diffDays=(a,b)=>Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/864e5);
+const QUICK=[['Hari ini',0],['Besok',1],['3 hari',3],['1 minggu',7],['2 minggu',14],['1 bulan',30],['Tanpa batas',-1]];
+function topCounts(fn){const m=new Map();items.forEach(i=>fn(i).forEach(v=>{v=String(v||'').trim();if(v)m.set(v,(m.get(v)||0)+1)}));return[...m.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0])}
+function pjDur(){
+  const tgl=$('pjTgl').value||today(),ren=$('pjRen').value,el=$('pjDur');
+  el.classList.remove('bad');
+  document.querySelectorAll('#pjQuick .qc').forEach(b=>{const d=+b.dataset.d;b.classList.toggle('on',d<0?!ren:ren===addDays(tgl,d))});
+  if(!ren){el.innerHTML='Tanpa batas waktu — tidak akan ditandai <b>telat</b>.';return}
+  const n=diffDays(tgl,ren);
+  if(n<0){el.classList.add('bad');el.textContent='Rencana kembali lebih awal dari tanggal pinjam.';return}
+  el.innerHTML='Durasi pinjam: <b>'+(n===0?'hari ini juga':n+' hari')+'</b> · kembali '+esc(fmtID(ren));
+}
+$('pjQuick').onclick=e=>{const b=e.target.closest('.qc');if(!b)return;const d=+b.dataset.d;$('pjRen').value=d<0?'':addDays($('pjTgl').value||today(),d);pjDur()};
+$('pjRecent').onclick=e=>{const b=e.target.closest('.qc');if(!b)return;$('pjOleh').value=b.dataset.n;$('pjProyek').focus()};
+$('pjTgl').oninput=$('pjRen').oninput=pjDur;
+/* ================= scan QR (kamera) ================= */
+const SCAN_RE=/[A-Za-z0-9]{2,6}-[A-Za-z0-9]{2,4}-\d{2}-\d{3,}/;
+let scanStream=null,scanTimer=0,scanBusy=false,scanDet=null,scanTrack=null,torchOn=false,scanBadAt=0;
+const scCv=document.createElement('canvas'),scCx=scCv.getContext('2d',{willReadFrequently:true});
+function loadJsQR(){
+  return window.jsQR?Promise.resolve():new Promise((ok,no)=>{
+    const el=document.createElement('script');
+    el.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';
+    el.onload=ok;el.onerror=()=>no(new Error('Pemindai gagal dimuat (periksa koneksi internet). Ketik kode manual di bawah.'));
+    document.head.appendChild(el);
+  });
+}
+function stopScan(){
+  clearTimeout(scanTimer);scanBusy=false;torchOn=false;scanDet=null;scanTrack=null;
+  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null}
+  $('scVideo').srcObject=null;
+}
+// kembalikan true bila kode ditemukan & detail dibuka
+function handleScan(text){
+  const m=SCAN_RE.exec(String(text||''));
+  if(!m){
+    if(Date.now()-scanBadAt>1500){scanBadAt=Date.now();$('scErr').textContent='QR ini bukan label barang.'}
+    return false;
+  }
+  const kode=m[0].toUpperCase(),it=items.find(i=>i.kode===kode);
+  if(!it){
+    if(Date.now()-scanBadAt>1500){scanBadAt=Date.now();$('scErr').textContent='Kode '+kode+' tidak terdaftar di database.'}
+    return false;
+  }
+  try{navigator.vibrate&&navigator.vibrate(60)}catch(e){}
+  stopScan();$('dlgScan').close();
+  showDetail(kode);
+  return true;
+}
+async function scanTick(){
+  if(!scanStream)return;
+  const v=$('scVideo');
+  if(v.readyState>=2&&v.videoWidth&&!scanBusy){
+    scanBusy=true;
+    try{
+      let text='';
+      if(scanDet){const r=await scanDet.detect(v);if(r.length)text=r[0].rawValue}
+      else if(window.jsQR){
+        const w=Math.min(640,v.videoWidth),h=Math.round(w*v.videoHeight/v.videoWidth);
+        scCv.width=w;scCv.height=h;scCx.drawImage(v,0,0,w,h);
+        const r=jsQR(scCx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
+        if(r)text=r.data;
+      }
+      if(text&&handleScan(text))return;
+    }catch(e){}
+    scanBusy=false;
+  }
+  scanTimer=setTimeout(scanTick,120);
+}
+async function openScan(){
+  $('scErr').textContent='';$('scManual').value='';$('scTorch').hidden=true;
+  if(!$('dlgScan').open)$('dlgScan').showModal();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    $('scErr').textContent='Kamera tidak didukung di browser ini. Ketik kode manual di bawah.';return;
+  }
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+  }catch(e){
+    $('scErr').textContent=(e&&e.name==='NotAllowedError')
+      ?'Izin kamera ditolak. Aktifkan izin kamera untuk situs ini di pengaturan browser, atau ketik kode manual.'
+      :'Kamera tidak bisa dibuka. Ketik kode manual di bawah.';
+    return;
+  }
+  if(!$('dlgScan').open){stopScan();return} // dialog ditutup saat menunggu izin
+  const v=$('scVideo');v.srcObject=scanStream;
+  try{await v.play()}catch(e){}
+  scanTrack=scanStream.getVideoTracks()[0];
+  try{const caps=scanTrack.getCapabilities?scanTrack.getCapabilities():{};$('scTorch').hidden=!caps.torch}catch(e){}
+  if('BarcodeDetector' in window){
+    try{const f=await BarcodeDetector.getSupportedFormats();if(f.includes('qr_code'))scanDet=new BarcodeDetector({formats:['qr_code']})}catch(e){}
+  }
+  if(!scanDet){try{await loadJsQR()}catch(e){$('scErr').textContent=e.message;return}}
+  if(!$('dlgScan').open||!scanStream)return;
+  scanTick();
+}
+$('scanBtn').onclick=$('scanFab').onclick=openScan;
+$('dlgScan').addEventListener('close',stopScan);
+$('scForm').onsubmit=e=>{
+  e.preventDefault();
+  const val=$('scManual').value.trim();
+  if(!val){$('scErr').textContent='Ketik kode barang dulu.';return}
+  if(!handleScan(val)&&!$('scErr').textContent)$('scErr').textContent='Kode tidak dikenali.';
+};
+$('scTorch').onclick=async()=>{
+  if(!scanTrack)return;
+  try{torchOn=!torchOn;await scanTrack.applyConstraints({advanced:[{torch:torchOn}]});$('scTorch').textContent=torchOn?'Matikan senter':'Senter'}
+  catch(e){torchOn=false}
+};
+
+/* ================= form peminjaman (cetak / simpan PDF) ================= */
+const LOAN_TERMS=[
+  'Peminjam bertanggung jawab atas keamanan dan kondisi barang selama masa peminjaman.',
+  'Barang digunakan sesuai peruntukan dan tidak dipindahtangankan tanpa sepengetahuan yang menyerahkan.',
+  'Barang dikembalikan paling lambat pada tanggal rencana kembali; perpanjangan dikonfirmasi terlebih dahulu.',
+  'Kerusakan atau kehilangan wajib dilaporkan segera dan menjadi tanggung jawab peminjam sesuai ketentuan perusahaan.'
+];
+const BASE_TITLE=document.title;
+window.addEventListener('afterprint',()=>{document.title=BASE_TITLE});
+function loanFormHTML(it){
+  const p=it.pinjam,v=x=>esc(x||'-');
+  const org=(window.CONFIG&&CONFIG.ORG)||'';
+  const noDok='PJM/'+it.kode+'/'+String(p.tgl||today()).replace(/-/g,'');
+  const kv=(k,val,w)=>`<div${w?' class="w"':''}><span class="k">${k}</span><span class="v">${val}</span></div>`;
+  const mt=[it.merk,it.tipe].filter(Boolean).join(' / ');
+  const kn=it.kalNext?fmtID(it.kalNext):'';
+  const sig=(a,b)=>`<div class="sig">${[a,b].map(x=>`<div class="sg"><div class="rl">${esc(x.role)}</div><div class="sp"></div><div class="nm">${x.name?esc(x.name):'(................................)'}</div><small>${esc(x.note||'Tanggal: ....................')}</small></div>`).join('')}</div>`;
+  return `<div class="doc">
+  <div class="dh"><div>${org?`<div class="org">${esc(org)}</div>`:''}<h1>FORMULIR PEMINJAMAN BARANG</h1><div class="no">No. ${esc(noDok)} · Dicetak ${esc(fmtID(today()))}</div></div><div class="qr dqr"></div></div>
+  <h2>A. Data barang</h2>
+  <div class="kv">${kv('Kode barang',esc(it.kode))}${kv('Klasifikasi',v(catName(it.kat)))}${kv('Nama barang',v(it.nama),1)}${kv('Merk / Tipe',v(mt))}${kv('Serial number',v(it.sn))}${kv('Jumlah',esc(it.qty||1))}${kv('Lokasi simpan',v(it.lokasi))}${kv('Kondisi saat dipinjam',v(it.kondisi))}${kv('Kalibrasi berikutnya',v(kn))}</div>
+  <h2>B. Data peminjaman</h2>
+  <div class="kv">${kv('Peminjam',v(p.oleh))}${kv('Proyek / tujuan',v(p.proyek))}${kv('Tanggal pinjam',v(fmtID(p.tgl)))}${kv('Rencana kembali',p.rencana?esc(fmtID(p.rencana)):'Tanpa batas waktu')}${kv('Catatan',v(p.cat),1)}</div>
+  <h2>C. Ketentuan</h2>
+  <ol>${LOAN_TERMS.map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
+  ${sig({role:'Peminjam',name:p.oleh,note:'Tanggal: '+(fmtID(p.tgl)||'....................')},{role:'Yang menyerahkan',name:it.pic,note:'Tanggal: '+(fmtID(p.tgl)||'....................')})}
+  <h2>D. Pengembalian <span class="sm">(diisi saat barang dikembalikan)</span></h2>
+  <div class="kv"><div class="w"><span class="k">Tanggal kembali</span><span class="ln"></span></div>
+   <div class="w"><span class="k">Kondisi saat kembali</span><span class="v"><i class="cb"></i>Baik <i class="cb"></i>Perlu kalibrasi <i class="cb"></i>Perlu perbaikan <i class="cb"></i>Rusak</span></div>
+   <div class="w"><span class="k">Catatan</span><span class="ln wide"></span></div>
+   <div class="w"><span class="k"></span><span class="ln wide"></span></div></div>
+  ${sig({role:'Peminjam',name:'',note:'Tanggal: ....................'},{role:'Penerima',name:'',note:'Tanggal: ....................'})}
+  <div class="dfoot">Dokumen ini dibuat dari aplikasi Registrasi Kode Barang. Simpan bersama arsip peminjaman.</div>
+ </div>`;
+}
+function printLoanForm(kode){
+  const it=items.find(i=>i.kode===kode);
+  if(!it||!it.pinjam){msg('Barang ini tidak sedang dipinjam.',1);return}
+  const pa=$('printArea');pa.innerHTML=loanFormHTML(it);
+  drawCode(pa,it);
+  document.title='Form-Peminjaman-'+it.kode;
+  window.print();
+}
+
 function openPinjam(kode){
   const it=items.find(i=>i.kode===kode);if(!it)return;
   dlgKode=kode;
   $('pjKode').textContent=kode;$('pjNama').textContent=it.nama;
-  ['pjOleh','pjProyek','pjRen','pjCat'].forEach(k=>$(k).value='');$('pjTgl').value=today();$('pjErr').textContent='';
+  $('pjMeta').innerHTML=(it.lokasi?'<span>'+esc(it.lokasi)+'</span>':'')+(it.merk||it.tipe?'<span>'+esc([it.merk,it.tipe].filter(Boolean).join(' / '))+'</span>':'')+'<span class="bdg '+kondCls(it.kondisi||'Baik')+'">'+esc(it.kondisi||'Baik')+'</span>';
+  const orang=topCounts(i=>[i.pinjam&&i.pinjam.oleh,...(i.riwayat||[]).map(r=>r.oleh)]);
+  $('pjOlehList').innerHTML=orang.slice(0,40).map(n=>`<option value="${esc(n)}">`).join('');
+  $('pjRecent').innerHTML=orang.length?'<span class="qcl">Sering meminjam:</span>'+orang.slice(0,5).map(n=>`<button type="button" class="qc" data-n="${esc(n)}">${esc(n)}</button>`).join(''):'';
+  $('pjProyekList').innerHTML=topCounts(i=>[i.pinjam&&i.pinjam.proyek,...(i.riwayat||[]).map(r=>r.proyek)]).slice(0,40).map(n=>`<option value="${esc(n)}">`).join('');
+  $('pjQuick').innerHTML=QUICK.map(([t,d])=>`<button type="button" class="qc" data-d="${d}">${t}</button>`).join('');
+  ['pjOleh','pjProyek','pjRen','pjCat'].forEach(k=>$(k).value='');$('pjTgl').value=today();$('pjErr').textContent='';pjDur();
+  try{$('pjPrint').checked=localStorage.getItem('kode-barang-pjprint')==='1'}catch(e){}
   const w=[];
   if(kalState(it).k==='lewat')w.push('Kalibrasi sudah lewat jatuh tempo ('+fmtID(it.kalNext)+').');
   if(it.kondisi&&it.kondisi!=='Baik')w.push('Kondisi barang: '+it.kondisi+'.');
@@ -479,8 +642,11 @@ $('fPinjam').onsubmit=async e=>{
   if(rencana&&rencana<tgl){$('pjErr').textContent='Rencana kembali tidak boleh lebih awal dari tanggal pinjam.';return}
   if(!$('pjWarn').hidden&&!confirm('Peringatan: '+$('pjWarn').textContent+'\n\nTetap dipinjamkan?'))return;
   const upd=Object.assign({},it,{pinjam:{oleh,proyek:$('pjProyek').value.trim(),tgl,rencana,cat:$('pjCat').value.trim()}});
-  try{await commit(upd);$('dlgPinjam').close();msg('Dipinjamkan: '+it.kode+' → '+oleh)}
+  const ok=$('pjOk');ok.disabled=true;ok.textContent='Menyimpan…';
+  const wantPrint=$('pjPrint').checked;try{localStorage.setItem('kode-barang-pjprint',wantPrint?'1':'0')}catch(e){}
+  try{await commit(upd);$('dlgPinjam').close();msg('Dipinjamkan: '+it.kode+' → '+oleh);if(wantPrint)setTimeout(()=>printLoanForm(it.kode),200)}
   catch(err){$('pjErr').textContent='Gagal menyimpan: '+(err&&err.message||'hak akses tidak cukup')}
+  finally{ok.disabled=false;ok.textContent='Pinjamkan'}
 };
 
 function openKembali(kode){
@@ -566,6 +732,7 @@ function showDetail(kode){
       +row('Keterangan',esc(it.ket))
       +'</dl>';
     $('dtActs').innerHTML=(p?'<button class="btn" type="button" data-act="kembali">Kembalikan</button>':'<button class="btn" type="button" data-act="pinjam">Pinjam</button>')
+      +(p?' <button class="btn sec" type="button" data-act="form">Cetak form</button>':'')
       +((p||(it.riwayat&&it.riwayat.length))?' <button class="btn sec" type="button" data-act="riwayat">Riwayat</button>':'')
       +' <button class="btn sec" type="button" data-act="edit">Edit</button> <button class="btn sec" type="button" data-close="1">Tutup</button>';
   }
@@ -579,6 +746,7 @@ $('dlgDetail').onclick=e=>{
   if(a==='pinjam')openPinjam(k);
   if(a==='kembali')openKembali(k);
   if(a==='riwayat')showRiwayat(k);
+  if(a==='form')setTimeout(()=>printLoanForm(k),120);
   if(a==='edit')startEdit(k);
 };
 $('dlgDetail').addEventListener('close',clearHash);
