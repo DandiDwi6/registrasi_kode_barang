@@ -330,9 +330,6 @@ tbody tr{transition:background .12s}
 .dsub{display:block;margin-top:1px;color:var(--mu);font-size:11.5px;font-weight:400}
 td.code .dsub{font-family:var(--sans)}
 .mo{display:none}
-tr.k-rusak td{background:color-mix(in srgb,var(--er) 7%,var(--card))}
-tr.k-kal td{background:color-mix(in srgb,var(--or) 10%,var(--card))}
-tr.k-perb td{background:color-mix(in srgb,var(--dot) 8%,var(--card))}
 .bdg.er{background:color-mix(in srgb,var(--er) 18%,var(--card))}
 .bdg.or{background:color-mix(in srgb,var(--or) 22%,var(--card))}
 .bdg.wr{background:color-mix(in srgb,var(--dot) 26%,var(--card))}
@@ -353,13 +350,21 @@ tr.k-perb td{background:color-mix(in srgb,var(--dot) 8%,var(--card))}
 @media(max-width:700px){
  .dsub{display:none}
  .card.full td.mo{display:flex}
- .card.full tr.k-rusak{background:color-mix(in srgb,var(--er) 10%,var(--card))}
- .card.full tr.k-kal{background:color-mix(in srgb,var(--or) 11%,var(--card))}
- .card.full tr.k-perb{background:color-mix(in srgb,var(--dot) 11%,var(--card))}
  .card.full td.aksi .ib{flex:1 1 auto}
  .card.full tr{background:var(--card);box-shadow:0 0 0 1px var(--line),0 6px 16px -10px rgba(15,45,100,.3)}
  .card.full tr.sel{background:var(--ac2)}
 }
+
+
+/* ---- label berwarna menurut kondisi (rusak = merah, kalibrasi = oranye, perbaikan = kuning; normal = putih) ---- */
+.lbl.t-rusak{--tc:#c62828;--tb:#fdeceb}
+.lbl.t-kal{--tc:#e65100;--tb:#fff0dc}
+.lbl.t-perb{--tc:#b58105;--tb:#fff7d1}
+.lbl.t-rusak,.lbl.t-kal,.lbl.t-perb{background:var(--tb);border:2.5px solid var(--tc);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lbl.t-rusak .h,.lbl.t-kal .h,.lbl.t-perb .h{margin:calc(-2mm*var(--k,1)) calc(-3mm*var(--k,1)) 0;padding:calc(1.3mm*var(--k,1)) calc(3mm*var(--k,1));border:0;background:var(--tc);color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.lbl.t-rusak .qr,.lbl.t-kal .qr,.lbl.t-perb .qr{background:#fff;box-shadow:0 0 0 .8mm #fff}
+.lbl.t-rusak .c,.lbl.t-kal .c,.lbl.t-perb .c{color:var(--tc)}
+[data-lsz=mini] .lbl.t-rusak .qr,[data-lsz=mini] .lbl.t-kal .qr,[data-lsz=mini] .lbl.t-perb .qr{box-shadow:0 0 0 .5mm #fff}
 
 /* ---- cetak ---- */
 #printArea{display:none}
@@ -371,4 +376,5 @@ tr.k-perb td{background:color-mix(in srgb,var(--dot) 8%,var(--card))}
  #printArea .sheet{display:grid;grid-template-columns:repeat(var(--cols,2),var(--lw,75mm));gap:var(--gy,1mm) var(--gx,5mm);justify-content:center;break-after:page}
  #printArea .sheet:last-child{break-after:auto}
  #printArea .lbl{width:var(--lw,75mm);height:calc(var(--lh,45mm) - .2mm);border:.3mm solid #000;overflow:hidden;break-inside:avoid;box-shadow:none}
+ #printArea .lbl.t-rusak,#printArea .lbl.t-kal,#printArea .lbl.t-perb{border:.7mm solid var(--tc)}
 }

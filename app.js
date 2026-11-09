@@ -159,8 +159,11 @@ function qrPayload(it){
     it.kalNext&&'Kalibrasi berikutnya: '+fmtID(it.kalNext),it.kalNo&&'No. sertifikat: '+it.kalNo,it.pic&&'PIC: '+it.pic];
   return ascii(L.filter(Boolean).join('\n')).slice(0,600);
 }
+function lblTone(it){return it.kondisi==='Rusak'?'rusak':it.kondisi==='Perlu kalibrasi'?'kal':it.kondisi==='Perlu perbaikan'?'perb':''}
+const TONE_TXT={rusak:'RUSAK',kal:'KALIBRASI',perb:'PERBAIKAN'};
 function labelHTML(it){
-  const head=`<div class="h"><span>ASSET TAG</span><span>${esc(catName(it.kat))}</span></div>`;
+  const tn=lblTone(it);
+  const head=`<div class="h"><span>ASSET TAG${tn?' · '+TONE_TXT[tn]:''}</span><span>${esc(catName(it.kat))}</span></div>`;
   const mk=esc([it.merk,it.tipe].filter(Boolean).join(' / ')),sn=it.sn?' · S/N '+esc(it.sn):'';
   if(useQR())return head+`<div class="q"><div class="qr"></div><div class="qd"><div class="c">${esc(it.kode)}</div><b>${esc(it.nama)}</b><span>${mk}${sn}</span><span>Lokasi: ${esc(it.lokasi||'-')}</span><span>Reg: ${esc(it.tgl||'')}</span></div></div>`;
   return head+`<div class="c">${esc(it.kode)}</div>
@@ -233,7 +236,8 @@ $('lblW').oninput=$('lblH').oninput=()=>applySize(true);
 
 function label(it){
   const L=$('label');
-  if(!it){L.innerHTML='<div class="empty" style="margin:auto;color:#666">Label muncul setelah barang disimpan</div>';return}
+  if(!it){L.className='lbl';L.innerHTML='<div class="empty" style="margin:auto;color:#666">Label muncul setelah barang disimpan</div>';return}
+  L.className='lbl'+(lblTone(it)?' t-'+lblTone(it):'');
   L.innerHTML=labelHTML(it);
   drawCode(L,it);
   $('copies').value=Math.min(99,Math.max(1,it.qty||1));
@@ -247,7 +251,7 @@ function printBatch(list){ // list: [{it, n}]
   let sheet=null,count=0;
   list.forEach(({it,n})=>{for(let i=0;i<n;i++){
     if(count%PER_SHEET===0){sheet=document.createElement('div');sheet.className='sheet';pa.appendChild(sheet)}
-    const d=document.createElement('div');d.className='lbl';d.innerHTML=labelHTML(it);sheet.appendChild(d);drawCode(d,it);count++;
+    const d=document.createElement('div');d.className='lbl'+(lblTone(it)?' t-'+lblTone(it):'');d.innerHTML=labelHTML(it);sheet.appendChild(d);drawCode(d,it);count++;
   }});
   window.print();
 }
