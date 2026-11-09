@@ -323,6 +323,7 @@ function summary(){
   $('sPinjam').textContent=c.pinjam;$('sTsd').textContent=items.length-c.pinjam;
   $('sumTot').textContent='Total '+items.length+' barang';
 }
+const kondCls=k=>k==='Baik'?'ok':k==='Rusak'?'er':k==='Perlu kalibrasi'?'or':'wr';
 const isMob=()=>window.matchMedia('(max-width:700px)').matches;
 const PAGE=()=>isMob()?15:50;
 let shownN=0,lastSig=null;const expanded=new Set();
@@ -341,11 +342,21 @@ function render(){
     const kal=ks.k?`<span class="bdg ${ks.c}">${esc(ks.t)}</span> <small>${esc(fmtID(i.kalNext))}</small>`:'<small>-</small>';
     const pj=i.pinjam
       ?`<span class="bdg ${pinjamLate(i)?'er':'wr'}">${pinjamLate(i)?'Telat kembali':'Dipinjam'}</span> <small>${esc(i.pinjam.oleh)}</small>`
-      :'<span class="bdg ok">Tersedia</span>';
+      :'<span class="plain">Tersedia</span>';
     const hasHist=i.pinjam||(i.riwayat&&i.riwayat.length);
     const k=esc(i.kode);
-    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a></td><td data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}</td><td data-label="Merk / Tipe">${esc([i.merk,i.tipe].filter(Boolean).join(' / '))}</td><td data-label="S/N">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${esc(i.kondisi)}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td data-label="Tgl">${esc(i.tgl)}</td>
-    <td class="aksi"><button class="btn sec" data-p="${k}">Label</button> <button class="btn sec" data-e="${k}">Edit</button> ${i.pinjam?`<button class="btn sec" data-k="${k}">Kembalikan</button>`:`<button class="btn sec" data-b="${k}">Pinjam</button>`}${hasHist?` <button class="btn sec" data-r="${k}">Riwayat</button>`:''} <button class="btn dg" data-d="${k}">Hapus</button></td></tr>`;
+    const kc=i.kondisi==='Rusak'?' k-rusak':i.kondisi==='Perlu kalibrasi'?' k-kal':i.kondisi==='Perlu perbaikan'?' k-perb':'';
+    const kon=i.kondisi==='Baik'?'<span class="plain">Baik</span>':`<span class="bdg ${kondCls(i.kondisi)}">${esc(i.kondisi)}</span>`;
+    const mt=esc([i.merk,i.tipe].filter(Boolean).join(' / '));
+    const ib=(at,cls,tt,ic,tx)=>`<button class="btn ${cls} ib" ${at}="${k}" title="${tt}" aria-label="${tt}"><svg viewBox="0 0 24 24">${ic}</svg><span>${tx}</span></button>`;
+    const IC={p:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
+      e:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+      b:'<path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/>',
+      k:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/>',
+      r:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      d:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'};
+    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
+    <td class="aksi">${ib('data-p','sec','Cetak label',IC.p,'Label')}${ib('data-e','sec','Edit',IC.e,'Edit')}${i.pinjam?ib('data-k','sec','Kembalikan',IC.k,'Kembalikan'):ib('data-b','sec','Pinjamkan',IC.b,'Pinjam')}${hasHist?ib('data-r','sec','Riwayat',IC.r,'Riwayat'):''}${ib('data-d','dg','Hapus',IC.d,'Hapus')}</td></tr>`;
   }).join('');
   $('empty').hidden=list.length>0;
   $('moreWrap').hidden=rest<=0;
