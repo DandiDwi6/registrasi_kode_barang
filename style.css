@@ -402,11 +402,12 @@ td.code .dsub{font-family:var(--sans)}
 .hact .instbtn{margin:0}
 .instbtn svg{width:15px;height:15px;margin-right:6px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .dsubt{color:var(--mu);font-size:12.5px}
-.scanbox{position:relative;margin-top:14px;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#06121f}
+.scanbox{position:relative;margin-top:14px;aspect-ratio:4/3;min-height:220px;border-radius:14px;overflow:hidden;background:#06121f}
 .scanbox video{display:block;width:100%;height:100%;object-fit:cover}
 .scframe{position:absolute;inset:16%;border:2.5px solid rgba(255,255,255,.92);border-radius:14px;box-shadow:0 0 0 999px rgba(6,18,31,.5);pointer-events:none}
 .scline{position:absolute;left:16%;right:16%;top:16%;height:2px;background:linear-gradient(90deg,transparent,var(--sky),transparent);box-shadow:0 0 12px var(--sky);animation:scanline 2.2s ease-in-out infinite alternate;pointer-events:none}
 @keyframes scanline{to{top:84%}}
+.sctap{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:16px;border:0;background:rgba(6,18,31,.72);color:#fff;font:600 15px var(--sans);text-align:center;cursor:pointer}
 .scmanual{display:flex;gap:8px;margin-top:12px}
 .scmanual input{flex:1;min-width:0}
 .fab{display:none}
@@ -417,6 +418,40 @@ td.code .dsub{font-family:var(--sans)}
  .fab:active{transform:scale(.95)}
 }
 @media (prefers-reduced-motion:reduce){.scline{animation:none;top:50%}}
+
+
+/* ---- stok opname ---- */
+.chip.ok{background:var(--okb);color:var(--ok)}
+.chip.on{box-shadow:inset 0 0 0 2px currentColor}
+.opprog{margin-top:14px;padding:14px 16px;border-radius:14px;background:var(--ac2)}
+.opnum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.opnum b{color:var(--ac);font:600 28px/1 var(--mono)}
+.opnum span{color:var(--mu);font-size:12.5px}
+.opbarwrap{height:8px;margin-top:10px;border-radius:99px;background:color-mix(in srgb,var(--ac) 18%,transparent);overflow:hidden}
+.opbar{width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#3a9bf5,var(--ac));transition:width .3s}
+.opinfo,.scinfo{margin-top:10px;padding:9px 12px;border-radius:10px;background:var(--fld);color:var(--tx);font-size:13px;overflow-wrap:anywhere}
+.opinfo.ok,.scinfo.ok{background:var(--okb);color:var(--ok)}
+.opinfo.warn,.scinfo.warn{background:var(--wrb);color:var(--wr)}
+.opinfo.mu,.scinfo.mu{color:var(--mu)}
+#opRun .scmanual{margin-top:10px}
+.oplist{max-height:min(44vh,420px)}
+.opit{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.opit:last-child{border-bottom:0}
+.opi{flex:1;min-width:0}
+.opi code{display:block;color:var(--ac);font:600 12px var(--mono)}
+.opi b{display:block;font-weight:600}
+.opi small{display:block;color:var(--mu);font-size:12px}
+.opit .ib{flex:none;min-height:0;padding:7px 11px;font-size:12.5px}
+.opit .ib svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#opScan svg{width:17px;height:17px;margin-right:8px;vertical-align:-3px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#opScan{display:inline-flex;align-items:center;justify-content:center}
+.rph{margin:16px 0 0;font-size:14px;font-weight:700}
+.rpt .lsitem{cursor:default}
+.rpt .lsitem:hover{background:transparent}
+.sc.static{cursor:default}
+.sc.static:hover{transform:none;background:var(--fld);box-shadow:none}
+#rpTiles{margin-top:10px}
+@media(min-width:701px){#dlgOpname{width:min(720px,94vw)}}
 
 /* ---- cetak ---- */
 #printArea{display:none}
@@ -460,4 +495,16 @@ td.code .dsub{font-family:var(--sans)}
  .doc .sg .nm{margin-top:1mm;font-weight:700}
  .doc .sg small{display:block;color:#444;font-size:8.5pt}
  .doc .dfoot{margin-top:5mm;color:#555;font-size:8pt;text-align:center}
+}
+
+/* ---- laporan opname (cetak) ---- */
+@media print{
+ #printArea .doc.multi{break-inside:auto}
+ .doc table{width:100%;border-collapse:collapse;font-size:8.5pt}
+ .doc th,.doc td{padding:1.2mm 2mm;border:.2mm solid #888;text-align:left;vertical-align:top}
+ .doc th{background:#eee;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .doc thead{display:table-header-group}
+ .doc tr{break-inside:avoid}
+ .doc .none{margin:0;color:#555;font-size:9pt}
+ .doc .sig{break-inside:avoid}
 }

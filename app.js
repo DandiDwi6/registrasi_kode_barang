@@ -480,7 +480,7 @@ $('pjRecent').onclick=e=>{const b=e.target.closest('.qc');if(!b)return;$('pjOleh
 $('pjTgl').oninput=$('pjRen').oninput=pjDur;
 /* ================= scan QR (kamera) ================= */
 const SCAN_RE=/[A-Za-z0-9]{2,6}-[A-Za-z0-9]{2,4}-\d{2}-\d{3,}/;
-let scanStream=null,scanTimer=0,scanBusy=false,scanDet=null,scanTrack=null,torchOn=false,scanBadAt=0;
+let scanStream=null,scanTimer=0,scanBusy=false,scanDet=null,scanTrack=null,torchOn=false,scanBadAt=0,scanMode='detail',scanLastKode='',scanLastAt=0;
 const scCv=document.createElement('canvas'),scCx=scCv.getContext('2d',{willReadFrequently:true});
 function loadJsQR(){
   return window.jsQR?Promise.resolve():new Promise((ok,no)=>{
@@ -502,7 +502,16 @@ function handleScan(text){
     if(Date.now()-scanBadAt>1500){scanBadAt=Date.now();$('scErr').textContent='QR ini bukan label barang.'}
     return false;
   }
-  const kode=m[0].toUpperCase(),it=items.find(i=>i.kode===kode);
+  const kode=m[0].toUpperCase();
+  if(scanMode==='opname'){ // mode stok opname: kamera tetap menyala, tiap barang dicatat
+    const now=Date.now();
+    if(kode===scanLastKode&&now-scanLastAt<2500)return false;
+    scanLastKode=kode;scanLastAt=now;
+    const r=opMark(kode);opFeedback(r);
+    try{navigator.vibrate&&navigator.vibrate(r.s==='ok'?60:[40,60,40])}catch(e){}
+    return false;
+  }
+  const it=items.find(i=>i.kode===kode);
   if(!it){
     if(Date.now()-scanBadAt>1500){scanBadAt=Date.now();$('scErr').textContent='Kode '+kode+' tidak terdaftar di database.'}
     return false;
@@ -512,64 +521,320 @@ function handleScan(text){
   showDetail(kode);
   return true;
 }
+let scanN=0;
+// jsQR: frame penuh (maks 960 px) dan potongan tengah (QR lebih besar) bergantian
+function jsqrFrame(v){
+  const vw=v.videoWidth,vh=v.videoHeight;
+  let sx=0,sy=0,sw=vw,sh=vh,tw=Math.min(960,vw);
+  if(++scanN%2===0){const q=Math.round(Math.min(vw,vh)*.7);sx=Math.round((vw-q)/2);sy=Math.round((vh-q)/2);sw=sh=q;tw=Math.min(720,q)}
+  const th=Math.round(tw*sh/sw);
+  scCv.width=tw;scCv.height=th;scCx.drawImage(v,sx,sy,sw,sh,0,0,tw,th);
+  const r=jsQR(scCx.getImageData(0,0,tw,th).data,tw,th,{inversionAttempts:'dontInvert'});
+  return r?r.data:'';
+}
+function prepScan(){
+  scanDet=null;
+  return (async()=>{
+    if('BarcodeDetector' in window){
+      try{const f=await BarcodeDetector.getSupportedFormats();if(f.includes('qr_code')){scanDet=new BarcodeDetector({formats:['qr_code']});return}}catch(e){}
+    }
+    await loadJsQR();
+  })();
+}
 async function scanTick(){
   if(!scanStream)return;
   const v=$('scVideo');
-  if(v.readyState>=2&&v.videoWidth&&!scanBusy){
+  if(!v.paused&&v.readyState>=2&&v.videoWidth&&!scanBusy){
     scanBusy=true;
     try{
       let text='';
       if(scanDet){const r=await scanDet.detect(v);if(r.length)text=r[0].rawValue}
-      else if(window.jsQR){
-        const w=Math.min(640,v.videoWidth),h=Math.round(w*v.videoHeight/v.videoWidth);
-        scCv.width=w;scCv.height=h;scCx.drawImage(v,0,0,w,h);
-        const r=jsQR(scCx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:'dontInvert'});
-        if(r)text=r.data;
-      }
+      else if(window.jsQR)text=jsqrFrame(v);
       if(text&&handleScan(text))return;
     }catch(e){}
     scanBusy=false;
   }
   scanTimer=setTimeout(scanTick,120);
 }
-async function openScan(){
+async function openScan(mode){
+  scanMode=mode==='opname'?'opname':'detail';scanLastKode='';
+  $('scTitle').textContent=scanMode==='opname'?'Scan untuk opname':'Scan QR label';
+  $('scSub').textContent=scanMode==='opname'?'Scan tiap barang satu per satu. Kamera tetap menyala.':'Arahkan kamera ke QR pada label barang';
+  $('scInfo').hidden=true;$('scTap').hidden=true;
   $('scErr').textContent='';$('scManual').value='';$('scTorch').hidden=true;
   if(!$('dlgScan').open)$('dlgScan').showModal();
+  const ready=prepScan();ready.catch(()=>{}); // muat pemindai sambil menunggu izin kamera
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    $('scErr').textContent='Kamera tidak didukung di browser ini. Ketik kode manual di bawah.';return;
+    $('scErr').textContent='Kamera tidak tersedia di browser ini. Jika dibuka lewat WhatsApp/Instagram, buka tautannya di Safari atau Chrome. Atau pakai tombol Foto QR / ketik kode manual.';return;
   }
   try{
     scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
   }catch(e){
-    $('scErr').textContent=(e&&e.name==='NotAllowedError')
-      ?'Izin kamera ditolak. Aktifkan izin kamera untuk situs ini di pengaturan browser, atau ketik kode manual.'
-      :'Kamera tidak bisa dibuka. Ketik kode manual di bawah.';
+    const n=e&&e.name;
+    $('scErr').textContent=n==='NotAllowedError'||n==='SecurityError'
+      ?'Izin kamera ditolak. Aktifkan izin kamera untuk situs ini di pengaturan browser (iPhone: Pengaturan > Safari > Kamera), atau pakai tombol Foto QR.'
+      :n==='NotReadableError'?'Kamera sedang dipakai aplikasi lain. Tutup aplikasi itu lalu coba lagi, atau pakai tombol Foto QR.'
+      :'Kamera tidak bisa dibuka'+(n?' ('+n+')':'')+'. Pakai tombol Foto QR atau ketik kode manual.';
     return;
   }
   if(!$('dlgScan').open){stopScan();return} // dialog ditutup saat menunggu izin
-  const v=$('scVideo');v.srcObject=scanStream;
-  try{await v.play()}catch(e){}
+  const v=$('scVideo');
+  v.muted=true;v.setAttribute('playsinline','');v.srcObject=scanStream;
+  // iOS bisa menolak/menahan play() otomatis (mode hemat daya) -> jangan ditunggu, sediakan tombol ketuk
+  try{const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{$('scTap').hidden=false})}catch(e){$('scTap').hidden=false}
+  setTimeout(()=>{if(scanStream&&(v.paused||v.readyState<2))$('scTap').hidden=false},1200);
   scanTrack=scanStream.getVideoTracks()[0];
   try{const caps=scanTrack.getCapabilities?scanTrack.getCapabilities():{};$('scTorch').hidden=!caps.torch}catch(e){}
-  if('BarcodeDetector' in window){
-    try{const f=await BarcodeDetector.getSupportedFormats();if(f.includes('qr_code'))scanDet=new BarcodeDetector({formats:['qr_code']})}catch(e){}
-  }
-  if(!scanDet){try{await loadJsQR()}catch(e){$('scErr').textContent=e.message;return}}
+  try{await ready}catch(e){$('scErr').textContent=e.message;return}
   if(!$('dlgScan').open||!scanStream)return;
   scanTick();
 }
+$('scVideo').addEventListener('playing',()=>{$('scTap').hidden=true});
+$('scTap').onclick=()=>{const v=$('scVideo');v.muted=true;const pr=v.play();if(pr&&pr.catch)pr.catch(()=>{});$('scTap').hidden=true};
+// kembali dari aplikasi lain / layar mati: kamera berhenti sendiri -> nyalakan lagi
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(scanStream&&$('dlgScan').open)stopScan();return}
+  if($('dlgScan').open&&!scanStream)openScan(scanMode);
+});
+// cadangan: ambil foto QR dengan kamera bawaan, lalu dibaca
+function readPhoto(file){
+  return new Promise((ok,no)=>{
+    const url=URL.createObjectURL(file),img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);ok(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);no(new Error('Foto tidak bisa dibaca.'))};
+    img.src=url;
+  });
+}
+function decodeImage(img){
+  const W=img.naturalWidth,H=img.naturalHeight,scale=Math.min(1,1600/Math.max(W,H));
+  const tries=[[0,0,W,H],[.15,.15,.7,.7],[.25,.25,.5,.5]];
+  for(const [fx,fy,fw,fh] of tries){
+    const sx=Math.round(W*fx),sy=Math.round(H*fy),sw=Math.round(W*(fw)),sh=Math.round(H*(fh));
+    const tw=Math.max(1,Math.round(sw*scale)),th=Math.max(1,Math.round(sh*scale));
+    scCv.width=tw;scCv.height=th;scCx.drawImage(img,sx,sy,sw,sh,0,0,tw,th);
+    const r=jsQR(scCx.getImageData(0,0,tw,th).data,tw,th,{inversionAttempts:'attemptBoth'});
+    if(r&&r.data)return r.data;
+  }
+  return '';
+}
+$('scPhoto').onclick=()=>$('scFile').click();
+$('scFile').onchange=async e=>{
+  const f=e.target.files&&e.target.files[0];e.target.value='';
+  if(!f)return;
+  $('scErr').textContent='Membaca foto…';
+  try{
+    await loadJsQR();
+    const text=decodeImage(await readPhoto(f));
+    if(!text){$('scErr').textContent='QR tidak terbaca di foto. Dekatkan kamera, pastikan QR terang dan tidak buram, lalu coba lagi.';return}
+    $('scErr').textContent='';
+    handleScan(text);
+  }catch(err){$('scErr').textContent=err&&err.message||'Foto gagal dibaca.'}
+};
+// siapkan pemindai cadangan di latar belakang (browser tanpa BarcodeDetector, mis. Safari iPhone)
+if(!('BarcodeDetector' in window))window.addEventListener('load',()=>setTimeout(()=>loadJsQR().catch(()=>{}),2500));
 $('scanBtn').onclick=$('scanFab').onclick=openScan;
-$('dlgScan').addEventListener('close',stopScan);
+$('dlgScan').addEventListener('close',()=>{stopScan();scanMode='detail';scanLastKode='';if(op&&$('dlgOpname').open)opRender()});
 $('scForm').onsubmit=e=>{
   e.preventDefault();
   const val=$('scManual').value.trim();
   if(!val){$('scErr').textContent='Ketik kode barang dulu.';return}
-  if(!handleScan(val)&&!$('scErr').textContent)$('scErr').textContent='Kode tidak dikenali.';
+  const ok=handleScan(val);
+  if(scanMode==='opname'){$('scManual').value='';return}
+  if(!ok&&!$('scErr').textContent)$('scErr').textContent='Kode tidak dikenali.';
 };
 $('scTorch').onclick=async()=>{
   if(!scanTrack)return;
   try{torchOn=!torchOn;await scanTrack.applyConstraints({advanced:[{torch:torchOn}]});$('scTorch').textContent=torchOn?'Matikan senter':'Senter'}
   catch(e){torchOn=false}
+};
+
+/* ================= stok opname ================= */
+const OPK='kode-barang-opname-v1';
+let op=null;
+const nz=s=>String(s||'').trim().toLowerCase();
+const opSave=()=>{try{localStorage.setItem(OPK,JSON.stringify(op))}catch(e){}};
+const opLoad=()=>{try{return JSON.parse(localStorage.getItem(OPK)||'null')}catch(e){return null}};
+const fmtDT=ms=>new Date(ms).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const fmtHM=ms=>new Date(ms).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+function opInScope(it){const s=op.scope;return s.type==='lokasi'?nz(it.lokasi)===s.value:s.type==='kat'?it.kat===s.value:true}
+function opLists(){
+  const exp=items.filter(opInScope);
+  return{exp,
+    found:exp.filter(i=>op.found[i.kode]),
+    borrowed:exp.filter(i=>!op.found[i.kode]&&i.pinjam),
+    missing:exp.filter(i=>!op.found[i.kode]&&!i.pinjam),
+    extra:Object.keys(op.extra).map(k=>items.find(i=>i.kode===k)).filter(Boolean)};
+}
+const opView=v=>['opSetup','opRun','opReport'].forEach(id=>$(id).hidden=id!==v);
+function opMark(kode){
+  const it=items.find(i=>i.kode===kode);
+  if(!it)return{s:'unknown',kode};
+  if(op.found[kode]||op.extra[kode])return{s:'dup',it};
+  if(opInScope(it)){op.found[kode]=Date.now();opSave();return{s:'ok',it}}
+  op.extra[kode]=Date.now();opSave();return{s:'extra',it};
+}
+function opFeedback(r){
+  const L=opLists(),done=L.found.length+L.borrowed.length;
+  const nm=r.it?r.it.kode+' · '+r.it.nama:r.kode;
+  let t,c='ok';
+  if(r.s==='ok')t='✓ '+nm;
+  else if(r.s==='dup'){t='Sudah dicatat: '+nm;c='mu'}
+  else if(r.s==='extra'){t='⚠ '+nm+' — di luar lingkup opname (tercatat di: '+(r.it.lokasi||'tanpa lokasi')+')';c='warn'}
+  else{t='Kode '+r.kode+' tidak terdaftar.';c='warn'}
+  const txt=t+'  ·  '+done+' / '+L.exp.length;
+  const a=$('scInfo');a.className='scinfo '+c;a.textContent=txt;a.hidden=false;
+  const b=$('opInfo');b.className='opinfo '+c;b.textContent=txt;b.hidden=false;
+  $('scErr').textContent='';
+  if($('dlgOpname').open)opRender();
+}
+function opFillVal(){
+  const t=$('opType').value;
+  $('opValWrap').hidden=t==='all';
+  if(t==='lokasi'){
+    const m=new Map();
+    items.forEach(i=>{const k=nz(i.lokasi),e=m.get(k)||{n:(i.lokasi||'').trim()||'(tanpa lokasi)',c:0};e.c++;m.set(k,e)});
+    $('opValLbl').textContent='Lokasi simpan';
+    $('opVal').innerHTML=[...m.entries()].sort((a,b)=>a[1].n.localeCompare(b[1].n)).map(([k,e])=>`<option value="${esc(k)}">${esc(e.n)} (${e.c})</option>`).join('');
+  }else if(t==='kat'){
+    $('opValLbl').textContent='Klasifikasi';
+    $('opVal').innerHTML=Object.entries(CATS).map(([k,v])=>`<option value="${esc(k)}">${esc(v.n)} (${items.filter(i=>i.kat===k).length})</option>`).join('');
+  }
+  opCountHint();
+}
+function opCountHint(){
+  const t=$('opType').value,v=$('opVal').value;
+  const n=t==='all'?items.length:items.filter(i=>t==='lokasi'?nz(i.lokasi)===v:i.kat===v).length;
+  $('opCount').textContent=n+' barang akan diperiksa.';
+  $('opStart').disabled=!n;
+}
+function openOpname(){
+  const saved=opLoad();
+  $('opResume').hidden=!saved;
+  if(saved){
+    $('opResInfo').textContent=saved.scope.label+' · mulai '+fmtDT(saved.startedAt)+' · '+Object.keys(saved.found).length+' sudah ditandai'+(saved.finishedAt?' · laporan sudah dibuat':'');
+  }
+  opView('opSetup');$('opSub').textContent='Cek fisik barang dengan scan QR';
+  $('opInfo').hidden=true;
+  opFillVal();
+  if(!$('dlgOpname').open)$('dlgOpname').showModal();
+}
+const OPI={
+  mark:'<path d="m8.5 12.5 2.5 2.5 4.5-5"/><circle cx="12" cy="12" r="9"/>',
+  unmark:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/>',
+  rm:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'
+};
+function opRender(){
+  if(!op)return;
+  const L=opLists(),done=L.found.length+L.borrowed.length,tot=L.exp.length,pct=tot?Math.round(done/tot*100):100;
+  $('opSub').textContent=op.scope.label;
+  $('opPct').textContent=pct+'%';
+  $('opTxt').textContent=L.found.length+' ditemukan · '+L.borrowed.length+' dipinjam · '+L.missing.length+' belum';
+  $('opBar').style.width=pct+'%';
+  const tabs=[['belum','Belum',L.missing.length,'er'],['ada','Ditemukan',L.found.length,'ok'],['pinjam','Dipinjam',L.borrowed.length,''],['luar','Di luar daftar',L.extra.length,'wr']];
+  $('opTabs').innerHTML=tabs.map(([k,t,n,c])=>`<button type="button" class="chip ${c}${op.tab===k?' on':''}" data-t="${k}">${t} (${n})</button>`).join('');
+  const list={belum:L.missing,ada:L.found,pinjam:L.borrowed,luar:L.extra}[op.tab]||[];
+  const act={belum:['mark','Tandai ada'],ada:['unmark','Batalkan'],pinjam:['mark','Tandai ada'],luar:['rm','Hapus']}[op.tab];
+  const meta=i=>op.tab==='ada'?'Ditandai '+fmtHM(op.found[i.kode])+(i.lokasi?' · '+i.lokasi:'')
+    :op.tab==='pinjam'?'Dipinjam: '+i.pinjam.oleh+(i.pinjam.proyek?' · '+i.pinjam.proyek:'')
+    :[i.lokasi&&'Lokasi: '+i.lokasi,[i.merk,i.tipe].filter(Boolean).join(' / ')].filter(Boolean).join(' · ');
+  $('opList').innerHTML=list.length?list.slice(0,300).map(i=>`<div class="opit"><div class="opi"><code>${esc(i.kode)}</code><b>${esc(i.nama)}</b><small>${esc(meta(i))}</small></div><button type="button" class="btn sec ib" data-op="${act[0]}" data-k="${esc(i.kode)}" title="${act[1]}"><svg viewBox="0 0 24 24">${OPI[act[0]]}</svg><span>${act[1]}</span></button></div>`).join('')
+    :'<div class="lsempty">'+(op.tab==='belum'?'Semua barang sudah terhitung.':'Tidak ada barang di daftar ini.')+'</div>';
+}
+function opReportView(){
+  const L=opLists();
+  opView('opReport');$('opSub').textContent='Laporan · '+op.scope.label;
+  $('rpWhen').textContent='Mulai '+fmtDT(op.startedAt)+' · Selesai '+fmtDT(op.finishedAt||Date.now());
+  $('rpTot').textContent=L.exp.length;$('rpFound').textContent=L.found.length;$('rpBorrow').textContent=L.borrowed.length;
+  $('rpMiss').textContent=L.missing.length;$('rpExtra').textContent=L.extra.length;
+  const row=i=>`<div class="lsitem"><code>${esc(i.kode)}</code><b>${esc(i.nama)}</b><small>${esc([i.lokasi&&'Lokasi: '+i.lokasi,[i.merk,i.tipe].filter(Boolean).join(' / ')].filter(Boolean).join(' · '))}</small></div>`;
+  $('rpMissT').textContent='Belum ditemukan ('+L.missing.length+')';
+  $('rpMissL').innerHTML=L.missing.length?L.missing.slice(0,300).map(row).join(''):'<div class="lsempty">Tidak ada. Semua barang terhitung.</div>';
+  $('rpExtraBox').hidden=!L.extra.length;
+  $('rpExtraL').innerHTML=L.extra.map(row).join('');
+}
+function opRows(){
+  const L=opLists(),rows=[['Status','Kode','Nama barang','Klasifikasi','Merk / Tipe','S/N','Lokasi tercatat','Peminjam','Waktu scan']];
+  const add=(st,i,ts)=>rows.push([st,i.kode,i.nama,catName(i.kat),[i.merk,i.tipe].filter(Boolean).join(' / '),i.sn||'',i.lokasi||'',i.pinjam?i.pinjam.oleh:'',ts?fmtDT(ts):'']);
+  L.missing.forEach(i=>add('Belum ditemukan',i));
+  L.found.forEach(i=>add('Ditemukan',i,op.found[i.kode]));
+  L.borrowed.forEach(i=>add('Dipinjam',i));
+  L.extra.forEach(i=>add('Di luar daftar',i,op.extra[i.kode]));
+  return rows;
+}
+function dlCSV(name,rows){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+}
+function opReportDoc(){
+  const L=opLists(),org=(window.CONFIG&&CONFIG.ORG)||'';
+  const kv=(k,v)=>`<div><span class="k">${k}</span><span class="v">${esc(v)}</span></div>`;
+  const tb=(cols,rows)=>rows.length?`<table><thead><tr><th>No</th>${cols.map(c=>`<th>${c[0]}</th>`).join('')}</tr></thead><tbody>${rows.map((i,n)=>`<tr><td>${n+1}</td>${cols.map(c=>`<td>${esc(c[1](i)||'-')}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<p class="none">Tidak ada.</p>';
+  const base=[['Kode',i=>i.kode],['Nama barang',i=>i.nama],['Merk / Tipe',i=>[i.merk,i.tipe].filter(Boolean).join(' / ')],['S/N',i=>i.sn],['Lokasi',i=>i.lokasi]];
+  const sg=r=>`<div class="sg"><div class="rl">${r}</div><div class="sp"></div><div class="nm">(................................)</div><small>Tanggal: ....................</small></div>`;
+  return `<div class="doc multi">
+  <div class="dh"><div>${org?`<div class="org">${esc(org)}</div>`:''}<h1>LAPORAN STOK OPNAME</h1><div class="no">${esc(op.scope.label)} · ${esc(fmtDT(op.finishedAt||Date.now()))}</div></div></div>
+  <h2>Ringkasan</h2>
+  <div class="kv">${kv('Barang diperiksa',L.exp.length)}${kv('Ditemukan',L.found.length)}${kv('Sedang dipinjam',L.borrowed.length)}${kv('Belum ditemukan',L.missing.length)}${kv('Di luar daftar',L.extra.length)}${kv('Mulai',fmtDT(op.startedAt))}</div>
+  <h2>Belum ditemukan (${L.missing.length})</h2>${tb(base,L.missing)}
+  ${L.extra.length?`<h2>Di luar daftar (${L.extra.length})</h2>${tb(base,L.extra)}`:''}
+  ${L.borrowed.length?`<h2>Sedang dipinjam (${L.borrowed.length})</h2>${tb([['Kode',i=>i.kode],['Nama barang',i=>i.nama],['Peminjam',i=>i.pinjam.oleh],['Proyek',i=>i.pinjam.proyek]],L.borrowed)}`:''}
+  <h2>Ditemukan (${L.found.length})</h2>${tb(base,L.found)}
+  <div class="sig">${sg('Pelaksana opname')}${sg('Mengetahui')}</div>
+  <div class="dfoot">Dokumen ini dibuat dari aplikasi Registrasi Kode Barang.</div>
+ </div>`;
+}
+$('opBtn').onclick=openOpname;
+$('opType').onchange=opFillVal;$('opVal').onchange=opCountHint;
+$('opStart').onclick=()=>{
+  const t=$('opType').value,v=t==='all'?'':$('opVal').value;
+  const nm=t==='all'?'':$('opVal').selectedOptions[0].textContent.replace(/ \(\d+\)$/,'');
+  const old=opLoad();
+  if(old&&Object.keys(old.found).length&&!confirm('Sesi opname sebelumnya akan diganti. Lanjutkan?'))return;
+  op={scope:{type:t,value:v,label:t==='all'?'Semua barang':(t==='lokasi'?'Lokasi: ':'Klasifikasi: ')+nm},startedAt:Date.now(),found:{},extra:{},tab:'belum'};
+  opSave();$('opInfo').hidden=true;opView('opRun');opRender();
+};
+$('opResBtn').onclick=()=>{
+  const saved=opLoad();if(!saved)return;
+  op=saved;$('opInfo').hidden=true;
+  if(op.finishedAt){opReportView()}else{opView('opRun');opRender()}
+};
+$('opScan').onclick=()=>openScan('opname');
+$('opForm').onsubmit=e=>{
+  e.preventDefault();
+  const v=$('opKode').value.trim();if(!v)return;
+  const m=SCAN_RE.exec(v);
+  if(!m){const b=$('opInfo');b.className='opinfo warn';b.textContent='Kode tidak valid.';b.hidden=false;return}
+  opFeedback(opMark(m[0].toUpperCase()));$('opKode').value='';
+};
+$('opTabs').onclick=e=>{const b=e.target.closest('.chip');if(!b||!op)return;op.tab=b.dataset.t;opSave();opRender()};
+$('opList').onclick=e=>{
+  const b=e.target.closest('button[data-op]');if(!b||!op)return;
+  const k=b.dataset.k,a=b.dataset.op;
+  if(a==='mark')op.found[k]=Date.now();
+  if(a==='unmark')delete op.found[k];
+  if(a==='rm')delete op.extra[k];
+  opSave();opRender();
+};
+$('opFinish').onclick=()=>{
+  const L=opLists();
+  if(L.missing.length&&!confirm('Masih ada '+L.missing.length+' barang yang belum ditemukan.\nLihat laporan sekarang? (sesi masih bisa dilanjutkan)'))return;
+  op.finishedAt=Date.now();opSave();opReportView();
+};
+$('opPause').onclick=()=>{opSave();$('dlgOpname').close();msg('Sesi opname disimpan. Lanjutkan lewat tombol Stok opname.')};
+$('opBack').onclick=()=>{op.finishedAt=null;opSave();opView('opRun');opRender()};
+$('opCsv').onclick=()=>dlCSV('stok-opname-'+today()+'.csv',opRows());
+$('opPrint').onclick=()=>{
+  $('printArea').innerHTML=opReportDoc();
+  document.title='Laporan-Stok-Opname-'+today();
+  window.print();
+};
+$('opDone').onclick=()=>{
+  if(!confirm('Hapus sesi opname ini dari perangkat?\nPastikan laporan sudah diekspor atau dicetak.'))return;
+  try{localStorage.removeItem(OPK)}catch(e){}
+  op=null;$('dlgOpname').close();msg('Sesi opname dihapus.');
 };
 
 /* ================= form peminjaman (cetak / simpan PDF) ================= */

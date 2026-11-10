@@ -51,7 +51,7 @@
 <header>
  <h1>Registrasi Kode Barang</h1>
  <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
- <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
+ <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="opBtn"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg> Stok opname</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
 </header>
 <main>
  <section class="card">
@@ -194,17 +194,83 @@
 <dialog id="dlgScan">
  <div class="dhead">
   <i class="dico"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></i>
-  <div><h3>Scan QR label</h3><p class="dsubt">Arahkan kamera ke QR pada label barang</p></div>
+  <div><h3 id="scTitle">Scan QR label</h3><p class="dsubt" id="scSub">Arahkan kamera ke QR pada label barang</p></div>
  </div>
- <div class="scanbox"><video id="scVideo" playsinline muted></video><div class="scframe"></div><div class="scline"></div></div>
+ <div class="scanbox"><video id="scVideo" autoplay muted playsinline webkit-playsinline></video><button type="button" class="sctap" id="scTap" hidden>Ketuk untuk mulai kamera</button><div class="scframe"></div><div class="scline"></div></div>
+ <div class="scinfo" id="scInfo" hidden></div>
  <div class="err" id="scErr"></div>
  <form id="scForm" class="scmanual">
   <input id="scManual" placeholder="atau ketik kode, mis. HV-TST-26-0001" autocapitalize="characters" autocomplete="off">
   <button class="btn sec" type="submit">Buka</button>
  </form>
  <div class="acts">
+  <button class="btn sec" type="button" id="scPhoto">Foto QR</button>
+  <input type="file" id="scFile" accept="image/*" capture="environment" hidden>
   <button class="btn sec" type="button" id="scTorch" hidden>Senter</button>
   <button class="btn sec" type="button" data-close="dlgScan">Tutup</button>
+ </div>
+</dialog>
+
+<dialog id="dlgOpname">
+ <div class="dhead">
+  <i class="dico"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg></i>
+  <div><h3>Stok opname</h3><p class="dsubt" id="opSub">Cek fisik barang dengan scan QR</p></div>
+ </div>
+
+ <div id="opSetup">
+  <div id="opResume" class="itemcard" hidden>
+   <b>Ada sesi yang belum selesai</b>
+   <div class="meta"><span id="opResInfo"></span></div>
+   <div class="acts"><button class="btn" type="button" id="opResBtn">Lanjutkan sesi</button></div>
+  </div>
+  <label for="opType">Lingkup pemeriksaan</label>
+  <select id="opType"><option value="all">Semua barang</option><option value="lokasi">Per lokasi simpan</option><option value="kat">Per klasifikasi</option></select>
+  <div id="opValWrap" hidden><label for="opVal" id="opValLbl">Lokasi simpan</label><select id="opVal"></select></div>
+  <p class="hint" id="opCount"></p>
+  <p class="hint">Barang yang sedang dipinjam tidak dihitung hilang. Sesi tersimpan di perangkat ini, jadi bisa dilanjutkan nanti.</p>
+  <div class="acts">
+   <button class="btn" type="button" id="opStart">Mulai opname baru</button>
+   <button class="btn sec" type="button" data-close="dlgOpname">Tutup</button>
+  </div>
+ </div>
+
+ <div id="opRun" hidden>
+  <div class="opprog">
+   <div class="opnum"><b id="opPct">0%</b><span id="opTxt"></span></div>
+   <div class="opbarwrap"><div class="opbar" id="opBar"></div></div>
+  </div>
+  <div class="acts"><button class="btn" type="button" id="opScan"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan kamera</button></div>
+  <form id="opForm" class="scmanual">
+   <input id="opKode" placeholder="atau ketik kode, mis. HV-TST-26-0001" autocapitalize="characters" autocomplete="off">
+   <button class="btn sec" type="submit">Tandai</button>
+  </form>
+  <div class="opinfo" id="opInfo" hidden></div>
+  <div class="chips" id="opTabs"></div>
+  <div class="lsbody oplist" id="opList"></div>
+  <div class="acts">
+   <button class="btn" type="button" id="opFinish">Selesai &amp; lihat laporan</button>
+   <button class="btn sec" type="button" id="opPause">Tutup (sesi disimpan)</button>
+  </div>
+ </div>
+
+ <div id="opReport" hidden>
+  <p class="hint" id="rpWhen"></p>
+  <div class="sum" id="rpTiles">
+   <div class="sc in static"><i class="ico"><svg viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></i><b id="rpTot">0</b><span>Diperiksa</span></div>
+   <div class="sc ok static"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></i><b id="rpFound">0</b><span>Ditemukan</span></div>
+   <div class="sc in static"><i class="ico"><svg viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i><b id="rpBorrow">0</b><span>Dipinjam</span></div>
+   <div class="sc er static"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></i><b id="rpMiss">0</b><span>Belum ditemukan</span></div>
+   <div class="sc or static"><i class="ico"><svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/></svg></i><b id="rpExtra">0</b><span>Di luar daftar</span></div>
+  </div>
+  <h3 class="rph" id="rpMissT">Belum ditemukan</h3>
+  <div class="lsbody oplist rpt" id="rpMissL"></div>
+  <div id="rpExtraBox" hidden><h3 class="rph">Di luar daftar</h3><div class="lsbody oplist rpt" id="rpExtraL"></div></div>
+  <div class="acts">
+   <button class="btn" type="button" id="opCsv">Ekspor CSV</button>
+   <button class="btn" type="button" id="opPrint">Cetak / PDF</button>
+   <button class="btn sec" type="button" id="opBack">Kembali ke daftar</button>
+   <button class="btn dg" type="button" id="opDone">Selesai &amp; hapus sesi</button>
+  </div>
  </div>
 </dialog>
 
