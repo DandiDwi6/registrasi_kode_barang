@@ -453,6 +453,21 @@ td.code .dsub{font-family:var(--sans)}
 #rpTiles{margin-top:10px}
 @media(min-width:701px){#dlgOpname{width:min(720px,94vw)}}
 
+
+/* ---- logo EEI ---- */
+header h1::before{display:none!important}
+.brandlogo{flex:none;display:block;height:56px;width:auto;padding:5px 11px;border-radius:13px;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.16),0 10px 22px rgba(0,20,60,.3)}
+header p,.hact{margin-left:0!important}
+.lbl .hl{display:flex;align-items:center;gap:calc(1.8mm*var(--k,1));min-width:0}
+.lbl .lg{display:block;height:calc(5.6mm*var(--k,1));width:auto;border-radius:.5mm}
+.lbl .h{align-items:center}
+@media(max-width:700px){.brandlogo{height:44px;padding:4px 9px;border-radius:11px}}
+@media print{
+ .doc .dh{align-items:center}
+ .doc .dlogo{flex:none;display:block;height:17mm;width:auto}
+ .doc .dt{flex:1;min-width:0}
+}
+
 /* ---- cetak ---- */
 #printArea{display:none}
 @page{size:A4 portrait;margin:10mm}

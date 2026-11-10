@@ -159,11 +159,17 @@ function qrPayload(it){
     it.kalNext&&'Kalibrasi berikutnya: '+fmtID(it.kalNext),it.kalNo&&'No. sertifikat: '+it.kalNo,it.pic&&'PIC: '+it.pic];
   return ascii(L.filter(Boolean).join('\n')).slice(0,600);
 }
+const LOGO='icons/eei-logo.png';
+// tunggu gambar (logo) selesai dimuat sebelum dialog cetak dibuka, agar tidak tercetak kosong
+function doPrint(){
+  const imgs=[...document.querySelectorAll('#printArea img')];
+  Promise.all(imgs.map(i=>i.decode?i.decode().catch(()=>{}):Promise.resolve())).then(()=>window.print());
+}
 function lblTone(it){return it.kondisi==='Rusak'?'rusak':it.kondisi==='Perlu kalibrasi'?'kal':it.kondisi==='Perlu perbaikan'?'perb':''}
 const TONE_TXT={rusak:'RUSAK',kal:'KALIBRASI',perb:'PERBAIKAN'};
 function labelHTML(it){
   const tn=lblTone(it);
-  const head=`<div class="h"><span>ASSET TAG${tn?' · '+TONE_TXT[tn]:''}</span><span>${esc(catName(it.kat))}</span></div>`;
+  const head=`<div class="h"><span class="hl"><img class="lg" src="${LOGO}" alt=""><span>ASSET TAG${tn?' · '+TONE_TXT[tn]:''}</span></span><span>${esc(catName(it.kat))}</span></div>`;
   const mk=esc([it.merk,it.tipe].filter(Boolean).join(' / ')),sn=it.sn?' · S/N '+esc(it.sn):'';
   if(useQR())return head+`<div class="q"><div class="qr"></div><div class="qd"><div class="c">${esc(it.kode)}</div><b>${esc(it.nama)}</b><span>${mk}${sn}</span><span>Lokasi: ${esc(it.lokasi||'-')}</span><span>Reg: ${esc(it.tgl||'')}</span></div></div>`;
   return head+`<div class="c">${esc(it.kode)}</div>
@@ -253,7 +259,7 @@ function printBatch(list){ // list: [{it, n}]
     if(count%PER_SHEET===0){sheet=document.createElement('div');sheet.className='sheet';pa.appendChild(sheet)}
     const d=document.createElement('div');d.className='lbl'+(lblTone(it)?' t-'+lblTone(it):'');d.innerHTML=labelHTML(it);sheet.appendChild(d);drawCode(d,it);count++;
   }});
-  window.print();
+  doPrint();
 }
 function printLabels(){
   if(!lastItem){msg('Simpan barang dulu atau pilih "Label" dari tabel.',1);return}
@@ -775,7 +781,7 @@ function opReportDoc(){
   const base=[['Kode',i=>i.kode],['Nama barang',i=>i.nama],['Merk / Tipe',i=>[i.merk,i.tipe].filter(Boolean).join(' / ')],['S/N',i=>i.sn],['Lokasi',i=>i.lokasi]];
   const sg=r=>`<div class="sg"><div class="rl">${r}</div><div class="sp"></div><div class="nm">(................................)</div><small>Tanggal: ....................</small></div>`;
   return `<div class="doc multi">
-  <div class="dh"><div>${org?`<div class="org">${esc(org)}</div>`:''}<h1>LAPORAN STOK OPNAME</h1><div class="no">${esc(op.scope.label)} · ${esc(fmtDT(op.finishedAt||Date.now()))}</div></div></div>
+  <div class="dh"><img class="dlogo" src="${LOGO}" alt=""><div class="dt">${org?`<div class="org">${esc(org)}</div>`:''}<h1>LAPORAN STOK OPNAME</h1><div class="no">${esc(op.scope.label)} · ${esc(fmtDT(op.finishedAt||Date.now()))}</div></div></div>
   <h2>Ringkasan</h2>
   <div class="kv">${kv('Barang diperiksa',L.exp.length)}${kv('Ditemukan',L.found.length)}${kv('Sedang dipinjam',L.borrowed.length)}${kv('Belum ditemukan',L.missing.length)}${kv('Di luar daftar',L.extra.length)}${kv('Mulai',fmtDT(op.startedAt))}</div>
   <h2>Belum ditemukan (${L.missing.length})</h2>${tb(base,L.missing)}
@@ -829,7 +835,7 @@ $('opCsv').onclick=()=>dlCSV('stok-opname-'+today()+'.csv',opRows());
 $('opPrint').onclick=()=>{
   $('printArea').innerHTML=opReportDoc();
   document.title='Laporan-Stok-Opname-'+today();
-  window.print();
+  doPrint();
 };
 $('opDone').onclick=()=>{
   if(!confirm('Hapus sesi opname ini dari perangkat?\nPastikan laporan sudah diekspor atau dicetak.'))return;
@@ -855,7 +861,7 @@ function loanFormHTML(it){
   const kn=it.kalNext?fmtID(it.kalNext):'';
   const sig=(a,b)=>`<div class="sig">${[a,b].map(x=>`<div class="sg"><div class="rl">${esc(x.role)}</div><div class="sp"></div><div class="nm">${x.name?esc(x.name):'(................................)'}</div><small>${esc(x.note||'Tanggal: ....................')}</small></div>`).join('')}</div>`;
   return `<div class="doc">
-  <div class="dh"><div>${org?`<div class="org">${esc(org)}</div>`:''}<h1>FORMULIR PEMINJAMAN BARANG</h1><div class="no">No. ${esc(noDok)} · Dicetak ${esc(fmtID(today()))}</div></div><div class="qr dqr"></div></div>
+  <div class="dh"><img class="dlogo" src="${LOGO}" alt=""><div class="dt">${org?`<div class="org">${esc(org)}</div>`:''}<h1>FORMULIR PEMINJAMAN BARANG</h1><div class="no">No. ${esc(noDok)} · Dicetak ${esc(fmtID(today()))}</div></div><div class="qr dqr"></div></div>
   <h2>A. Data barang</h2>
   <div class="kv">${kv('Kode barang',esc(it.kode))}${kv('Klasifikasi',v(catName(it.kat)))}${kv('Nama barang',v(it.nama),1)}${kv('Merk / Tipe',v(mt))}${kv('Serial number',v(it.sn))}${kv('Jumlah',esc(it.qty||1))}${kv('Lokasi simpan',v(it.lokasi))}${kv('Kondisi saat dipinjam',v(it.kondisi))}${kv('Kalibrasi berikutnya',v(kn))}</div>
   <h2>B. Data peminjaman</h2>
@@ -878,7 +884,7 @@ function printLoanForm(kode){
   const pa=$('printArea');pa.innerHTML=loanFormHTML(it);
   drawCode(pa,it);
   document.title='Form-Peminjaman-'+it.kode;
-  window.print();
+  doPrint();
 }
 
 function openPinjam(kode){
