@@ -2,7 +2,7 @@
    - File aplikasi: jaringan dulu (agar update langsung terbaca), cadangan dari cache saat offline.
    - Library/font dari CDN: cache lalu perbarui diam-diam.
    - Panggilan ke Google Apps Script (data) TIDAK pernah di-cache. */
-const VER = 'kb-v6';
+const VER = 'kb-v7';
 const SHELL = ['./', 'index.html', 'style.css', 'app.js', 'config.js', 'manifest.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png', 'icons/favicon.png', 'icons/eei-logo.png', 'icons/eei-logo-white.png'];
 const EXT = ['cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];

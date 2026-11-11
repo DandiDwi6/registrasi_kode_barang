@@ -74,26 +74,26 @@
   </div>
   <button type="button" class="linkbtn" id="catDel" hidden>Hapus klasifikasi ini (belum dipakai)</button>
   <div class="prev"><span id="nextLbl">Kode berikutnya</span><code id="nextCode">-</code></div>
-  <p class="sub">Identitas barang</p>
-  <label>Nama barang *</label>
+  <p class="sub" data-np="1">Identitas barang</p>
+  <label id="namaLbl">Nama barang *</label>
   <input id="nama" placeholder="mis. Insulation Tester / Torque Wrench / Kabel NYY">
-  <div class="row3">
+  <div class="row3" data-np="1">
    <div><label>Merk</label><input id="merk"></div>
    <div><label>Tipe / Model</label><input id="tipe"></div>
    <div><label>Serial number</label><input id="sn"></div>
   </div>
   <p class="sub">Penyimpanan &amp; penanggung jawab</p>
   <div class="row3">
-   <div><label>Jumlah</label><input id="qty" type="number" min="1" value="1"></div>
+   <div data-np="1"><label>Jumlah</label><input id="qty" type="number" min="1" value="1"></div>
    <div><label>Lokasi simpan</label><input id="lok" placeholder="mis. Gudang A / Rak 3"></div>
-   <div><label>Kondisi</label>
+   <div data-np="1"><label>Kondisi</label>
     <select id="kon"><option>Baik</option><option>Perlu kalibrasi</option><option>Perlu perbaikan</option><option>Rusak</option></select></div>
   </div>
   <div class="row">
    <div><label>PIC / Penanggung jawab</label><input id="pic"></div>
    <div><label>Tgl registrasi</label><input id="tgl" type="date"></div>
   </div>
-  <details id="kalBox" class="kal">
+  <details id="kalBox" class="kal" data-np="1">
    <summary>Kalibrasi (opsional)</summary>
    <div class="row">
     <div><label>Kalibrasi terakhir</label><input id="kalLast" type="date"></div>
@@ -107,6 +107,13 @@
   </details>
   <label>Keterangan</label>
   <textarea id="ket" rows="2"></textarea>
+  <div id="p3kBox" class="p3kbox" hidden>
+   <p class="sub">Isi kotak P3K</p>
+   <p class="hint">Isi kotak dengan kartu barang di bawah. Tekan <b>+</b> / <b>&minus;</b> untuk jumlah, pilih satuan dari daftar. Tidak perlu mengetik format apa pun.</p>
+   <div id="p3kRows" class="isied"></div>
+   <textarea id="p3kText" hidden style="display:none"></textarea>
+   <div class="p3kfoot"><span id="p3kCount" class="hint"></span><span class="acts-inline"><button type="button" class="btn sec" id="p3kStd">Isi daftar standar</button><button type="button" class="btn sec" id="p3kClr">Kosongkan</button></span></div>
+  </div>
   <div class="acts">
    <button class="btn" id="simpan">Simpan &amp; buat label</button>
    <button class="btn sec" id="reset">Kosongkan</button>
@@ -153,6 +160,14 @@
  </section>
 
 </div>
+
+ <section class="card full" id="p3kCard">
+  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg></span>Kotak P3K <span id="p3kStat" class="dim"></span></h2>
+  <div class="chips" id="p3kAlerts"></div>
+  <p class="hint">Klik kotak untuk melihat isi &amp; mencatat pemakaian. Stok berkurang otomatis, dan label QR kotak bisa dipindai siapa saja untuk mencatat pemakaian.</p>
+  <div id="p3kList"></div>
+  <div class="empty" id="p3kEmpty" hidden>Belum ada kotak P3K. Pilih klasifikasi P3K di formulir untuk menambah kotak.</div>
+ </section>
 
  <section class="card full">
   <h2 class="h2flex"><span class="num">3</span>Database barang <span id="stat"></span></h2>
@@ -288,6 +303,56 @@
    <button class="btn sec" type="button" data-close="dlgCetakList">Batal</button>
   </div>
  </form>
+</dialog>
+
+<dialog id="dlgP3kAdd">
+ <form id="fP3kAdd">
+  <div class="dhead">
+   <i class="dico"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></i>
+   <div><h3>Tambah isi kotak</h3><p class="dsubt"><code id="paKode"></code> · <span id="paNama"></span></p></div>
+  </div>
+  <p class="hint">Tambahkan barang dengan kartu di bawah. Jika nama barang sudah ada di kotak ini, jumlahnya <b>ditambahkan</b> ke stok (isi ulang).</p>
+  <div id="paRows" class="isied"></div>
+  <textarea id="paText" hidden style="display:none"></textarea>
+  <p class="hint" id="paCount"></p>
+  <div class="err" id="paErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit" id="paOk">Tambahkan</button>
+   <button class="btn sec" type="button" id="paStd">Daftar standar</button>
+   <button class="btn sec" type="button" data-close="dlgP3kAdd">Batal</button>
+  </div>
+ </form>
+</dialog>
+
+<dialog id="dlgP3kItem">
+ <form id="fP3kItem">
+  <div class="dhead">
+   <i class="dico"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></i>
+   <div><h3>Edit isi kotak</h3><p class="dsubt"><code id="piKode"></code></p></div>
+  </div>
+  <label for="piNama">Nama barang *</label><input id="piNama">
+  <div class="row">
+   <div><label for="piStok">Stok saat ini</label><input id="piStok" type="number" min="0" inputmode="numeric"></div>
+   <div><label for="piSat">Satuan</label><input id="piSat" placeholder="pcs / roll / botol"></div>
+  </div>
+  <div class="row">
+   <div><label for="piMin">Stok minimum</label><input id="piMin" type="number" min="0" inputmode="numeric"></div>
+   <div><label for="piExp">Kadaluarsa</label><input id="piExp" type="date"></div>
+  </div>
+  <p class="hint">Stok di bawah minimum ditandai <b>Menipis</b>. Mengubah stok di sini dicatat sebagai <b>koreksi</b> di riwayat.</p>
+  <div class="err" id="piErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit" id="piOk">Simpan</button>
+   <button class="btn dg" type="button" id="piDel">Hapus dari kotak</button>
+   <button class="btn sec" type="button" data-close="dlgP3kItem">Batal</button>
+  </div>
+ </form>
+</dialog>
+
+<dialog id="dlgP3kLog">
+ <h3>Riwayat pemakaian <span id="plKode"></span></h3>
+ <div id="plBody"></div>
+ <div class="acts"><button class="btn sec" type="button" data-close="dlgP3kLog">Tutup</button></div>
 </dialog>
 
 <dialog id="dlgPinjam">
