@@ -456,16 +456,49 @@ td.code .dsub{font-family:var(--sans)}
 
 /* ---- logo EEI ---- */
 header h1::before{display:none!important}
-.brandlogo{flex:none;display:block;height:56px;width:auto;padding:5px 11px;border-radius:13px;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.16),0 10px 22px rgba(0,20,60,.3)}
+.brandlogo{flex:none;display:block;height:62px;width:auto;filter:drop-shadow(0 3px 10px rgba(0,20,60,.35))}
 header p,.hact{margin-left:0!important}
+header p{margin-top:8px}
 .lbl .hl{display:flex;align-items:center;gap:calc(1.8mm*var(--k,1));min-width:0}
 .lbl .lg{display:block;height:calc(5.6mm*var(--k,1));width:auto;border-radius:.5mm}
 .lbl .h{align-items:center}
-@media(max-width:700px){.brandlogo{height:44px;padding:4px 9px;border-radius:11px}}
+@media(max-width:700px){.brandlogo{height:48px}}
 @media print{
  .doc .dh{align-items:center}
  .doc .dlogo{flex:none;display:block;height:17mm;width:auto}
  .doc .dt{flex:1;min-width:0}
+}
+
+
+/* ---- rapikan desktop: header ringkas, form & kartu lebih padat ---- */
+.row3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.lblctl{display:grid;grid-template-columns:minmax(0,1fr) 92px auto;gap:12px;align-items:end;margin-top:14px}
+.lblctl label{margin-top:0}
+.lblctl .copies{width:auto}
+.lblctl .btn{min-height:42px;white-space:nowrap}
+#lblCustom{margin-top:6px}
+.persheet{display:block;margin:10px 0 0;color:var(--mu);font-size:12px}
+@media(min-width:701px){
+ header{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"t a" "p a";align-items:center;column-gap:24px;padding:18px max(20px,calc((100% - 1160px)/2)) 52px}
+ header h1{grid-area:t;font-size:21px}
+ header p{grid-area:p;margin:4px 0 0!important;font-size:12.5px}
+ header .hact{grid-area:a;margin:0!important;justify-content:flex-end}
+ .brandlogo{height:46px}
+ header::before{top:-150px}
+ main{margin-top:-30px}
+ .cats{display:flex;flex-wrap:wrap;gap:8px}
+ .cat{flex:1 1 auto;padding:11px 16px}
+ .cats{position:relative}
+ .cat.add{position:absolute;right:0;top:-34px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border:0;border-radius:999px;background:var(--ac2);box-shadow:none}
+ .cat.add b{display:inline;font-size:15px;line-height:1}
+ .cat.add small{color:var(--ac);font-size:12px;font-weight:600}
+ .cat.add:hover{background:var(--ring)}
+}
+@media(max-width:700px){
+ .row3{grid-template-columns:1fr;gap:0}
+ .lblctl{grid-template-columns:1fr;gap:0}
+ .lblctl .copies{margin-top:14px}
+ .lblctl .btn{width:100%;margin-top:14px}
 }
 
 /* ---- cetak ---- */
@@ -522,4 +555,23 @@ header p,.hact{margin-left:0!important}
  .doc tr{break-inside:avoid}
  .doc .none{margin:0;color:#555;font-size:9pt}
  .doc .sig{break-inside:avoid}
+}
+
+/* ---- daftar barang (cetak, landscape) ---- */
+@page list{size:A4 landscape;margin:10mm}
+@page list{@bottom-right{content:"Hal. " counter(page) " / " counter(pages);font:8pt Arial,sans-serif;color:#555}}
+@media print{
+ #printArea .doc.land{page:list;width:277mm}
+ .doc .sumline{margin:3.5mm 0 3mm;font-size:9pt;color:#222}
+ .doc .sumline b{font-weight:700}
+ .doc table.lt{font-size:8pt}
+ .doc table.lt th,.doc table.lt td{padding:1mm 1.6mm}
+ .doc table.lt td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+ .doc table.lt tr.grp td{background:#e6e6e6;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .doc .kr{color:#b71c1c;font-weight:700}
+ .doc .kk{color:#c25100;font-weight:700}
+ .doc .kp{color:#8a6500;font-weight:700}
+ .doc table.lt small{color:#555;font-size:7.5pt}
+ .doc table.lt small.kr{color:#b71c1c}
+ .doc table.lt small.kk{color:#c25100}
 }

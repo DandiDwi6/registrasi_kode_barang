@@ -49,7 +49,7 @@
  <i class="ic" style="left:48%;top:3%;--s:70px;--dx:30px;--dy:30px;--r:-30deg;--d:27s;--dl:-6s"><svg><use href="#i-bolt"/></svg></i>
 </div>
 <header>
- <h1><img class="brandlogo" src="icons/eei-logo.png" alt="PT. Energi Entlemi Indonesia">Registrasi Kode Barang</h1>
+ <h1><img class="brandlogo" src="icons/eei-logo-white.png" alt="PT. Energi Entlemi Indonesia">Registrasi Kode Barang</h1>
  <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
  <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="opBtn"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg> Stok opname</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
 </header>
@@ -77,16 +77,14 @@
   <p class="sub">Identitas barang</p>
   <label>Nama barang *</label>
   <input id="nama" placeholder="mis. Insulation Tester / Torque Wrench / Kabel NYY">
-  <div class="row">
+  <div class="row3">
    <div><label>Merk</label><input id="merk"></div>
    <div><label>Tipe / Model</label><input id="tipe"></div>
-  </div>
-  <div class="row">
    <div><label>Serial number</label><input id="sn"></div>
-   <div><label>Jumlah</label><input id="qty" type="number" min="1" value="1"></div>
   </div>
   <p class="sub">Penyimpanan &amp; penanggung jawab</p>
-  <div class="row">
+  <div class="row3">
+   <div><label>Jumlah</label><input id="qty" type="number" min="1" value="1"></div>
    <div><label>Lokasi simpan</label><input id="lok" placeholder="mis. Gudang A / Rak 3"></div>
    <div><label>Kondisi</label>
     <select id="kon"><option>Baik</option><option>Perlu kalibrasi</option><option>Perlu perbaikan</option><option>Rusak</option></select></div>
@@ -120,7 +118,7 @@
  <section class="card">
   <h2><span class="num">2</span>Label cetak <span id="lblDim" class="dim"></span></h2>
   <div class="lblwrap"><div id="label" class="lbl"></div></div>
-  <div class="row sizerow">
+  <div class="lblctl">
    <div><label for="lblSize">Ukuran label</label>
     <select id="lblSize">
      <option value="100x60">100 × 60 mm (besar)</option>
@@ -131,16 +129,14 @@
      <option value="30x20">30 × 20 mm (mini)</option>
      <option value="custom">Kustom…</option>
     </select></div>
-   <div id="lblCustom" class="row cust" hidden>
-    <div><label for="lblW">Lebar (mm)</label><input id="lblW" type="number" min="20" max="150" value="60"></div>
-    <div><label for="lblH">Tinggi (mm)</label><input id="lblH" type="number" min="15" max="100" value="40"></div>
-   </div>
-  </div>
-  <div class="acts">
    <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
    <button class="btn" id="cetak">Cetak label</button>
-   <span id="perSheet" class="persheet"></span>
   </div>
+  <div id="lblCustom" class="row cust" hidden>
+   <div><label for="lblW">Lebar (mm)</label><input id="lblW" type="number" min="20" max="150" value="60"></div>
+   <div><label for="lblH">Tinggi (mm)</label><input id="lblH" type="number" min="15" max="100" value="40"></div>
+  </div>
+  <p class="persheet" id="perSheet"></p>
  </section>
 
  <section class="card">
@@ -175,6 +171,7 @@
    <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
    <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
    <button class="btn sec" id="csvImp">Impor CSV</button>
+   <button class="btn sec" id="pdfList">Cetak / PDF</button>
    <button class="btn sec" id="csv">Ekspor CSV</button>
    <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
   </div>
@@ -272,6 +269,25 @@
    <button class="btn dg" type="button" id="opDone">Selesai &amp; hapus sesi</button>
   </div>
  </div>
+</dialog>
+
+<dialog id="dlgCetakList">
+ <form id="fCetakList">
+  <div class="dhead">
+   <i class="dico"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg></i>
+   <div><h3>Cetak daftar barang</h3><p class="dsubt">Pilih "Simpan sebagai PDF" di dialog cetak</p></div>
+  </div>
+  <label for="clScope">Barang yang dicetak</label>
+  <select id="clScope"></select>
+  <p class="hint" id="clHint"></p>
+  <label for="clGroup">Kelompokkan</label>
+  <select id="clGroup"><option value="">Tidak dikelompokkan</option><option value="kat">Per klasifikasi</option><option value="lokasi">Per lokasi simpan</option></select>
+  <label class="chk"><input type="checkbox" id="clKal" checked> Sertakan kolom kalibrasi &amp; status peminjaman</label>
+  <div class="acts">
+   <button class="btn" type="submit">Cetak / simpan PDF</button>
+   <button class="btn sec" type="button" data-close="dlgCetakList">Batal</button>
+  </div>
+ </form>
 </dialog>
 
 <dialog id="dlgPinjam">

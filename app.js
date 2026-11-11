@@ -159,7 +159,7 @@ function qrPayload(it){
     it.kalNext&&'Kalibrasi berikutnya: '+fmtID(it.kalNext),it.kalNo&&'No. sertifikat: '+it.kalNo,it.pic&&'PIC: '+it.pic];
   return ascii(L.filter(Boolean).join('\n')).slice(0,600);
 }
-const LOGO='icons/eei-logo.png';
+const LOGO='icons/eei-logo.png',LOGO_W='icons/eei-logo-white.png';
 // tunggu gambar (logo) selesai dimuat sebelum dialog cetak dibuka, agar tidak tercetak kosong
 function doPrint(){
   const imgs=[...document.querySelectorAll('#printArea img')];
@@ -169,7 +169,7 @@ function lblTone(it){return it.kondisi==='Rusak'?'rusak':it.kondisi==='Perlu kal
 const TONE_TXT={rusak:'RUSAK',kal:'KALIBRASI',perb:'PERBAIKAN'};
 function labelHTML(it){
   const tn=lblTone(it);
-  const head=`<div class="h"><span class="hl"><img class="lg" src="${LOGO}" alt=""><span>ASSET TAG${tn?' · '+TONE_TXT[tn]:''}</span></span><span>${esc(catName(it.kat))}</span></div>`;
+  const head=`<div class="h"><span class="hl"><img class="lg" src="${tn?LOGO_W:LOGO}" alt=""><span>ASSET TAG${tn?' · '+TONE_TXT[tn]:''}</span></span><span>${esc(catName(it.kat))}</span></div>`;
   const mk=esc([it.merk,it.tipe].filter(Boolean).join(' / ')),sn=it.sn?' · S/N '+esc(it.sn):'';
   if(useQR())return head+`<div class="q"><div class="qr"></div><div class="qd"><div class="c">${esc(it.kode)}</div><b>${esc(it.nama)}</b><span>${mk}${sn}</span><span>Lokasi: ${esc(it.lokasi||'-')}</span><span>Reg: ${esc(it.tgl||'')}</span></div></div>`;
   return head+`<div class="c">${esc(it.kode)}</div>
@@ -841,6 +841,76 @@ $('opDone').onclick=()=>{
   if(!confirm('Hapus sesi opname ini dari perangkat?\nPastikan laporan sudah diekspor atau dicetak.'))return;
   try{localStorage.removeItem(OPK)}catch(e){}
   op=null;$('dlgOpname').close();msg('Sesi opname dihapus.');
+};
+
+/* ================= cetak daftar barang (PDF) ================= */
+function listFilterText(){
+  const p=[],q=$('cari').value.trim();
+  if($('fkat').value)p.push('Klasifikasi: '+$('fkat').selectedOptions[0].textContent);
+  if($('fstat').value)p.push('Status: '+$('fstat').selectedOptions[0].textContent);
+  if(q)p.push('Pencarian: "'+q+'"');
+  return p.length?p.join(' · '):'';
+}
+function openCetakList(){
+  const ft=listFilterText();
+  $('clScope').innerHTML=`<option value="filter">Sesuai tampilan saat ini (${visible.length} barang)</option><option value="all">Semua barang (${items.length})</option>`;
+  $('clHint').textContent=ft?'Filter aktif — '+ft:'Tidak ada filter aktif.';
+  $('dlgCetakList').showModal();
+}
+function listDocHTML(o){
+  const org=(window.CONFIG&&CONFIG.ORG)||'';
+  const list=(o.scope==='all'?items.slice():visible.map(k=>items.find(i=>i.kode===k)).filter(Boolean)).sort((a,b)=>a.kode.localeCompare(b.kode));
+  const c={baik:0,kal:0,perb:0,rusak:0,pinjam:0};
+  list.forEach(i=>{
+    if(i.kondisi==='Perlu kalibrasi')c.kal++;else if(i.kondisi==='Perlu perbaikan')c.perb++;else if(i.kondisi==='Rusak')c.rusak++;else c.baik++;
+    if(i.pinjam)c.pinjam++;
+  });
+  const kon=i=>{const k=i.kondisi==='Rusak'?'kr':i.kondisi==='Perlu kalibrasi'?'kk':i.kondisi==='Perlu perbaikan'?'kp':'';return `<span class="${k}">${esc(i.kondisi||'Baik')}</span>`};
+  const cols=[
+    ['Kode',i=>esc(i.kode),'mono'],
+    ['Nama barang',i=>`<b>${esc(i.nama)}</b>`],
+    ['Merk / Tipe',i=>esc([i.merk,i.tipe].filter(Boolean).join(' / ')||'-')],
+    ['S/N',i=>esc(i.sn||'-')],
+    ['Jml',i=>esc(i.qty||1)],
+    ['Lokasi',i=>esc(i.lokasi||'-')],
+    ['Kondisi',kon]];
+  if(o.kal){
+    cols.push(['Kalibrasi berikutnya',i=>{const ks=kalState(i);return i.kalNext?esc(fmtID(i.kalNext))+(ks.k&&ks.k!=='ok'?`<br><small class="${ks.k==='lewat'?'kr':'kk'}">${esc(ks.t)}</small>`:''):'-'}]);
+    cols.push(['Status',i=>i.pinjam?`${pinjamLate(i)?'<span class="kr">Telat kembali</span>':'Dipinjam'}<br><small>${esc(i.pinjam.oleh)}${i.pinjam.proyek?' · '+esc(i.pinjam.proyek):''}</small>`:'Tersedia']);
+  }
+  let n=0;
+  const row=i=>`<tr><td>${++n}</td>${cols.map(k=>`<td${k[2]?` class="${k[2]}"`:''}>${k[1](i)}</td>`).join('')}</tr>`;
+  let body='';
+  if(o.group){
+    const g=new Map();
+    list.forEach(i=>{
+      const key=o.group==='kat'?catName(i.kat):((i.lokasi||'').trim()||'(tanpa lokasi)'),id=key.toLowerCase();
+      const e=g.get(id)||{n:key,a:[]};e.a.push(i);g.set(id,e);
+    });
+    [...g.values()].sort((a,b)=>a.n.localeCompare(b.n)).forEach(e=>{
+      body+=`<tr class="grp"><td colspan="${cols.length+1}">${esc(e.n)} (${e.a.length})</td></tr>`+e.a.map(row).join('');
+    });
+  }else body=list.map(row).join('');
+  const ft=o.scope==='all'?'Semua barang':(listFilterText()||'Semua barang');
+  return `<div class="doc land multi">
+  <div class="dh"><img class="dlogo" src="${LOGO}" alt=""><div class="dt">${org?`<div class="org">${esc(org)}</div>`:''}<h1>DAFTAR INVENTARIS BARANG</h1><div class="no">${esc(ft)} · Dicetak ${esc(fmtID(today()))}</div></div></div>
+  <div class="sumline">Total <b>${list.length}</b> barang · Baik <b>${c.baik}</b> · Perlu kalibrasi <b>${c.kal}</b> · Perlu perbaikan <b>${c.perb}</b> · Rusak <b>${c.rusak}</b> · Sedang dipinjam <b>${c.pinjam}</b></div>
+  <table class="lt"><thead><tr><th>No</th>${cols.map(k=>`<th>${k[0]}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table>
+  <div class="dfoot">Dokumen ini dibuat dari aplikasi Registrasi Kode Barang.</div>
+ </div>`;
+}
+$('pdfList').onclick=openCetakList;
+$('fCetakList').onsubmit=e=>{
+  e.preventDefault();
+  const o={scope:$('clScope').value,group:$('clGroup').value,kal:$('clKal').checked};
+  const total=o.scope==='all'?items.length:visible.length;
+  if(!total){msg('Tidak ada barang untuk dicetak.',1);return}
+  $('dlgCetakList').close();
+  setTimeout(()=>{
+    $('printArea').innerHTML=listDocHTML(o);
+    document.title='Daftar-Barang-'+today();
+    doPrint();
+  },150);
 };
 
 /* ================= form peminjaman (cetak / simpan PDF) ================= */
