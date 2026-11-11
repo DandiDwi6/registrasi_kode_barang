@@ -1078,7 +1078,7 @@ function showDetail(kode){
     $('dtBody').innerHTML=`<div class="dtname">${esc(it.nama)}</div><dl class="dl">`
       +row('Klasifikasi',esc(catName(it.kat)))+row('Lokasi simpan',esc(it.lokasi))+row('PIC',esc(it.pic))
       +row('Tgl registrasi',esc(fmtID(it.tgl)))+row('Keterangan',esc(it.ket))+'</dl>'+p3kUseHTML(it);
-    $('dtActs').innerHTML='<button class="btn sec" type="button" data-act="p3kadd">Tambah isi</button> <button class="btn sec" type="button" data-act="p3klog">Riwayat pemakaian</button> <button class="btn sec" type="button" data-act="edit">Edit kotak</button> <button class="btn sec" type="button" data-close="1">Tutup</button>';
+    $('dtActs').innerHTML='<button class="btn sec" type="button" data-act="p3kpdf">Daftar PDF</button> <button class="btn sec" type="button" data-act="p3kadd">Tambah isi</button> <button class="btn sec" type="button" data-act="p3klog">Riwayat pemakaian</button> <button class="btn sec" type="button" data-act="edit">Edit kotak</button> <button class="btn sec" type="button" data-close="1">Tutup</button>';
   }else{
     const ks=kalState(it),p=it.pinjam,row=(a,b)=>b?`<dt>${a}</dt><dd>${b}</dd>`:'';
     const status=p
@@ -1116,6 +1116,7 @@ $('dlgDetail').onclick=e=>{
   if(a==='riwayat')showRiwayat(k);
   if(a==='form')setTimeout(()=>printLoanForm(k),120);
   if(a==='edit')startEdit(k);
+  if(a==='p3kpdf')setTimeout(()=>printP3kDoc(k),120);
   if(a==='p3kadd')openP3kAdd(k);
   if(a==='p3klog')showP3kLog(k);
 };
@@ -1518,7 +1519,7 @@ function kotakHTML(it){
   const k=esc(it.kode),st=kotakStat(it),n=(it.isi||[]).length;
   const badges=(st.low?`<span class="bdg wr">${st.low} perlu isi ulang</span>`:'')+(st.exp?`<span class="bdg er">${st.exp} kedaluwarsa/segera</span>`:'');
   const ib=(pk,tt,ic,tx,cls)=>`<button type="button" class="btn ${cls||'sec'} ib" data-pk="${pk}" data-k="${k}" title="${tt}" aria-label="${tt}"><svg viewBox="0 0 24 24">${ic}</svg><span>${tx}</span></button>`;
-  return `<details class="kotak" data-k="${k}"${p3kOpen.has(it.kode)?' open':''}><summary><span class="kc">${k}</span><b>${esc(it.nama)}</b><small>${esc(it.lokasi||'tanpa lokasi')} · ${n} jenis isi</small><span class="kb">${badges}</span></summary><div class="kbody">${p3kUseHTML(it)}<div class="acts kact">${ib('label','Cetak label',PKI.p,'Label')}${ib('add','Tambah isi',PKI.a,'Tambah isi')}${ib('log','Riwayat pemakaian',PKI.r,'Riwayat')}${ib('edit','Edit kotak',PKI.e,'Edit')}${ib('del','Hapus kotak',PKI.d,'Hapus','dg')}</div></div></details>`;
+  return `<details class="kotak" data-k="${k}"${p3kOpen.has(it.kode)?' open':''}><summary><span class="kc">${k}</span><b>${esc(it.nama)}</b><small>${esc(it.lokasi||'tanpa lokasi')} · ${n} jenis isi</small><span class="kb">${badges}</span></summary><div class="kbody">${p3kUseHTML(it)}<div class="acts kact">${ib('label','Cetak label',PKI.p,'Label')}${ib('pdf','Cetak daftar isi (PDF)',PKI.p,'Daftar PDF')}${ib('add','Tambah isi',PKI.a,'Tambah isi')}${ib('log','Riwayat pemakaian',PKI.r,'Riwayat')}${ib('edit','Edit kotak',PKI.e,'Edit')}${ib('del','Hapus kotak',PKI.d,'Hapus','dg')}</div></div></details>`;
 }
 function renderP3k(){
   const ks=items.filter(i=>isP3K(i.kat)).sort((a,b)=>a.kode.localeCompare(b.kode));
@@ -1545,6 +1546,7 @@ document.addEventListener('click',e=>{
   const pk=e.target.closest('[data-pk]');if(!pk)return;
   const k=pk.dataset.k,a=pk.dataset.pk;
   if(a==='label'){const it=items.find(i=>i.kode===k);if(!it)return;lastItem=it;label(it);$('label').scrollIntoView({behavior:'smooth',block:'center'})}
+  if(a==='pdf')printP3kDoc(k);
   if(a==='add')openP3kAdd(k);
   if(a==='log')showP3kLog(k);
   if(a==='edit')startEdit(k);
@@ -1560,6 +1562,44 @@ async function delKotak(k){
     if(lastItem&&lastItem.kode===k){lastItem=null;label(null)}
     p3kOpen.delete(k);render();toast('Dihapus: '+k);
   }catch(err){toast('Gagal menghapus: '+(err&&err.message||'periksa koneksi'),1)}
+}
+
+
+/* ---- cetak daftar isi kotak P3K (A4, simpan sebagai PDF) ---- */
+function p3kDocHTML(it){
+  const org=(window.CONFIG&&CONFIG.ORG)||'';
+  const isi=(it.isi||[]).slice().sort((a,b)=>String(a.nama).localeCompare(String(b.nama)));
+  const kv=(k,val,w)=>`<div${w?' class="w"':''}><span class="k">${k}</span><span class="v">${val}</span></div>`;
+  const v=x=>esc(x||'-');
+  let out=0,low=0,expd=0,soon=0;
+  const rows=isi.map((x,i)=>{
+    const st=isiState(x),tag=[];
+    if(st.out){out++;tag.push('<span class="kr">Habis</span>')}else if(st.low){low++;tag.push('<span class="kk">Menipis</span>')}
+    if(st.expd){expd++;tag.push('<span class="kr">Kedaluwarsa</span>')}else if(st.soon){soon++;tag.push('<span class="kk">Exp '+st.days+' hari</span>')}
+    return `<tr><td class="c">${i+1}</td><td><b>${esc(x.nama)}</b></td><td class="c">${esc(x.stok)} ${esc(x.satuan||'')}</td><td class="c">${x.min?esc(x.min):'-'}</td><td class="c">${x.exp?esc(fmtID(x.exp)):'-'}</td><td>${tag.join('<br>')||'OK'}</td><td class="c"><i class="cb"></i>Ada <i class="cb"></i>Kurang</td><td class="note"></td></tr>`;
+  }).join('');
+  const sig=(role,name)=>`<div class="sg"><div class="rl">${role}</div><div class="sp"></div><div class="nm">${name?esc(name):'(................................)'}</div><small>Tanggal: ....................</small></div>`;
+  return `<div class="doc multi">
+  <div class="dh"><img class="dlogo" src="${LOGO}" alt=""><div class="dt">${org?`<div class="org">${esc(org)}</div>`:''}<h1>DAFTAR ISI KOTAK P3K</h1><div class="no">No. ${esc(it.kode)} · Dicetak ${esc(fmtID(today()))}</div></div><div class="qr dqr"></div></div>
+  <h2>A. Data kotak</h2>
+  <div class="kv">${kv('Kode kotak',esc(it.kode))}${kv('Nama kotak',v(it.nama))}${kv('Lokasi',v(it.lokasi))}${kv('PIC',v(it.pic))}${kv('Tgl registrasi',v(fmtID(it.tgl)))}${kv('Jumlah jenis isi',esc(isi.length))}</div>
+  <div class="sumline">Habis <b>${out}</b> · Menipis <b>${low}</b> · Kedaluwarsa <b>${expd}</b> · Segera kedaluwarsa <b>${soon}</b></div>
+  <h2>B. Daftar isi &amp; pemeriksaan <span class="sm">(centang saat pemeriksaan fisik)</span></h2>
+  <table class="lt pk"><thead><tr><th>No</th><th>Nama barang</th><th>Stok tercatat</th><th>Min</th><th>Kadaluarsa</th><th>Status</th><th>Hasil cek</th><th>Catatan</th></tr></thead><tbody>${rows}</tbody></table>
+  <h2>C. Pemeriksaan <span class="sm">(diisi saat dicek)</span></h2>
+  <div class="kv"><div class="w"><span class="k">Tanggal pemeriksaan</span><span class="ln"></span></div><div class="w"><span class="k">Catatan umum</span><span class="ln wide"></span></div></div>
+  <div class="sig">${sig('Pemeriksa','')}${sig('PIC kotak',it.pic)}</div>
+  <div class="dfoot">Dokumen ini dibuat dari aplikasi Registrasi Kode Barang. Stok sesuai data saat dicetak.</div>
+ </div>`;
+}
+function printP3kDoc(kode){
+  const it=items.find(i=>i.kode===kode);
+  if(!it){msg('Kotak tidak ditemukan.',1);return}
+  if(!(it.isi||[]).length){toast('Kotak ini belum punya isi.',1);return}
+  const pa=$('printArea');pa.innerHTML=p3kDocHTML(it);
+  drawCode(pa,it);
+  document.title='Daftar-Isi-P3K-'+it.kode;
+  doPrint();
 }
 
 /* ---- dialog: tambah isi (banyak sekaligus) ---- */

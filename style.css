@@ -658,3 +658,48 @@ header p{margin-top:8px}
 .qsel{flex:1;min-width:180px;min-height:44px}
 .hint.er{color:var(--er)}
 @media (max-width:460px){.irg3{grid-template-columns:auto 1fr}.mre{grid-column:1/-1;max-width:none}.irx{grid-template-columns:1fr}}
+
+
+/* ===== pop-up di HP: bottom sheet yang pas layar ===== */
+body:has(dialog[open]){overflow:hidden}
+dialog{overscroll-behavior:contain}
+@media(max-width:700px){
+ dialog,#dlgRiwayat,#dlgList,#dlgDetail,#dlgOpname,#dlgP3kLog{
+  width:100%;max-width:100%;
+  max-height:calc(100vh - 14px - env(safe-area-inset-top,0px));
+  max-height:calc(100dvh - 14px - env(safe-area-inset-top,0px));
+  margin:auto 0 0;padding:16px 16px 0;border-radius:20px 20px 0 0;
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+ dialog:not(:has(.acts)){padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+ /* tombol aksi selalu terlihat di bawah, isi dialog yang di-scroll */
+ dialog .acts{position:sticky;bottom:0;z-index:5;margin:14px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--card);box-shadow:0 -1px 0 var(--line)}
+ dialog .acts .btn{flex:1 1 auto;min-height:46px;justify-content:center}
+ dialog .acts .btn[type=submit]{flex:1 1 100%}
+ /* hindari zoom otomatis iOS saat mengetuk kolom isian */
+ dialog input,dialog select,dialog textarea{font-size:16px}
+ /* scan: kamera tidak makan seluruh layar */
+ #dlgScan .scanbox{aspect-ratio:auto;height:clamp(180px,34dvh,300px);min-height:0}
+ .scmanual .btn{flex:none}
+ /* detail & isi kotak */
+ .dl{grid-template-columns:104px 1fr}
+ .p3kuse .ir{flex-wrap:wrap}
+ .p3kuse .ia{margin-left:auto}
+ .lsbody{max-height:none}
+}
+@media(max-width:700px) and (max-height:520px){
+ #dlgScan .scanbox{height:130px}
+ .dico{width:36px;height:36px}
+}
+
+
+/* ---- daftar isi kotak P3K (cetak, portrait) ---- */
+@media print{
+ .doc table.pk{font-size:8.5pt}
+ .doc table.pk th,.doc table.pk td{padding:1.6mm 1.8mm}
+ .doc table.pk td.c{text-align:center;white-space:nowrap}
+ .doc table.pk td.note{min-width:28mm}
+ .doc table.pk .cb{margin:0 1mm -.5mm 1.5mm}
+ .doc table.pk .cb:first-child{margin-left:0}
+ .doc table.pk td{height:8mm;vertical-align:middle}
+}
