@@ -703,3 +703,31 @@ dialog{overscroll-behavior:contain}
  .doc table.pk .cb:first-child{margin-left:0}
  .doc table.pk td{height:8mm;vertical-align:middle}
 }
+
+/* ===== Toolbox pinjam ===== */
+#dlgToolbox{width:min(780px,95vw)}
+.tbtabs{display:flex;gap:8px;margin-top:14px}
+.tbtabs .chip{cursor:pointer}
+.tbtabs .chip.on{background:var(--ac);color:var(--onac)}
+#tbCount{color:var(--mu);font-weight:600;letter-spacing:0;text-transform:none}
+.tbadd{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;margin-top:12px}
+.tbacts{margin-top:10px}
+.tbcart{margin-top:10px;max-height:38vh;overflow:auto}
+.tbit,.tbk{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;padding:10px 12px;border-radius:10px;background:var(--fld)}
+.tbi{min-width:0}
+.tbi code,.tbk code{color:var(--ac);font:600 12px var(--mono)}
+.tbi b{display:block;font-weight:600}
+.tbi small{display:block;color:var(--mu);font-size:12px}
+.tbk{flex-wrap:wrap}
+.tbkc{display:flex;align-items:center;gap:10px;margin:0;flex:1 1 240px;color:var(--tx);font-size:13.5px;cursor:pointer}
+.tbkf{display:flex;gap:8px;flex:1 1 280px}
+.tbkf select{flex:0 0 150px}
+.tbkf input{background:var(--card)}
+.tbkf select{background:var(--card)}
+@media(max-width:700px){.tbadd{grid-template-columns:1fr}.tbkf{flex-direction:column}.tbkf select{flex:none}}
+@media print{
+ #printArea .doc td.c{text-align:center}
+ #printArea .doc td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap}
+ #printArea .doc td.note{min-width:30mm}
+ #printArea .doc .cb:first-child{margin-left:0}
+}

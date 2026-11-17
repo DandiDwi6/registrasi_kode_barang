@@ -51,7 +51,7 @@
 <header>
  <h1><img class="brandlogo" src="icons/eei-logo-white.png" alt="PT. Energi Entlemi Indonesia">Registrasi Kode Barang</h1>
  <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
- <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="opBtn"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg> Stok opname</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
+ <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="opBtn"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg> Stok opname</button><button type="button" class="instbtn" id="tbBtn"><svg viewBox="0 0 24 24"><path d="M3 8h18v12H3zM8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3M3 13h18M11 12h2v2h-2z"/></svg> Toolbox pinjam</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
 </header>
 <main>
  <section class="card">
@@ -185,6 +185,7 @@
    </select>
    <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
    <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
+   <button class="btn sec" id="bulkPinjam" disabled>Pinjam terpilih (0)</button>
    <button class="btn sec" id="csvImp">Impor CSV</button>
    <button class="btn sec" id="pdfList">Cetak / PDF</button>
    <button class="btn sec" id="csv">Ekspor CSV</button>
@@ -353,6 +354,63 @@
  <h3>Riwayat pemakaian <span id="plKode"></span></h3>
  <div id="plBody"></div>
  <div class="acts"><button class="btn sec" type="button" data-close="dlgP3kLog">Tutup</button></div>
+</dialog>
+
+<dialog id="dlgToolbox">
+ <div class="dhead">
+  <i class="dico"><svg viewBox="0 0 24 24"><path d="M3 8h18v12H3zM8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3M3 13h18M11 12h2v2h-2z"/></svg></i>
+  <div><h3>Toolbox pinjam</h3><p class="dsubt" id="tbSub">Pinjamkan beberapa alat sekaligus dalam satu formulir</p></div>
+ </div>
+ <div class="tbtabs"><button type="button" class="chip on" data-tab="pinjam">Pinjam</button><button type="button" class="chip" data-tab="kembali">Kembalikan</button></div>
+
+ <form id="tbPinjam">
+  <div class="row">
+   <div><label for="tbOleh">Peminjam *</label><input id="tbOleh" list="tbOlehList" autocomplete="off" placeholder="Nama peminjam"><datalist id="tbOlehList"></datalist></div>
+   <div><label for="tbProyek">Proyek / lokasi tujuan</label><input id="tbProyek" list="tbProyekList" autocomplete="off" placeholder="mis. GI Cibabat"><datalist id="tbProyekList"></datalist></div>
+  </div>
+  <div class="row">
+   <div><label for="tbTgl">Tgl pinjam</label><input id="tbTgl" type="date"></div>
+   <div><label for="tbRen">Rencana kembali</label><input id="tbRen" type="date"></div>
+  </div>
+  <div class="qchips" id="tbQuick"></div>
+  <p class="durinfo" id="tbDur"></p>
+  <label for="tbCat">Catatan</label><input id="tbCat" placeholder="mis. untuk pengukuran panel">
+
+  <p class="sub">Barang yang dipinjam <span id="tbCount"></span></p>
+  <div class="tbadd">
+   <input id="tbFind" placeholder="Cari nama / kode, lalu Enter" autocomplete="off" aria-label="Cari alat">
+   <select id="tbSel" aria-label="Pilih alat dari daftar"></select>
+  </div>
+  <div class="acts tbacts">
+   <button type="button" class="btn sec" id="tbScan">Scan QR</button>
+   <button type="button" class="btn sec" id="tbSelTbl">Dari centang tabel (0)</button>
+   <button type="button" class="btn dg" id="tbClear">Kosongkan</button>
+  </div>
+  <div class="tbcart" id="tbCart"></div>
+  <div class="warn" id="tbWarn" hidden></div>
+  <label class="chk"><input type="checkbox" id="tbPrint" checked> Cetak form peminjaman (PDF) setelah disimpan</label>
+  <div class="err" id="tbErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit" id="tbOk" disabled>Pinjamkan</button>
+   <button class="btn sec" type="button" data-close="dlgToolbox">Tutup</button>
+  </div>
+ </form>
+
+ <form id="tbKembali" hidden>
+  <label for="tbGrp">Peminjam / nomor dokumen</label>
+  <select id="tbGrp"></select>
+  <p class="hint" id="tbGrpInfo"></p>
+  <div class="row"><div><label for="tbKbTgl">Tgl kembali</label><input id="tbKbTgl" type="date"></div><div></div></div>
+  <div class="qchips"><span class="qcl">Pilih:</span><button type="button" class="qc" id="tbAll">Semua</button><button type="button" class="qc" id="tbNone">Tidak ada</button></div>
+  <div class="tbcart" id="tbKbList"></div>
+  <label class="chk"><input type="checkbox" id="tbKbPrint" checked> Cetak bukti pengembalian (PDF)</label>
+  <div class="err" id="tbKbErr"></div>
+  <div class="acts">
+   <button class="btn" type="submit" id="tbKbOk">Kembalikan</button>
+   <button class="btn sec" type="button" id="tbReprint" hidden>Cetak ulang form pinjam</button>
+   <button class="btn sec" type="button" data-close="dlgToolbox">Tutup</button>
+  </div>
+ </form>
 </dialog>
 
 <dialog id="dlgPinjam">
