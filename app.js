@@ -391,6 +391,7 @@ function render(){
   summary();
   updateBulk();
   renderP3k();
+  renderRH();
   showNext();
 }
 $('rows').onclick=async e=>{
@@ -1957,6 +1958,135 @@ function printReturnDoc(d){
   document.title='Bukti-Pengembalian-'+(d.dok||d.oleh)+'-'+d.kembali;
   doPrint();
 }
+
+/* ================= Riwayat peminjaman (kartu + cetak PDF) ================= */
+let rhShown=0,rhSig='';
+const RH_PAGE=30;
+function rhRows(){ // satu baris = satu barang dalam satu peminjaman (aktif maupun sudah kembali)
+  const out=[];
+  tools().forEach(i=>{
+    const base={kode:i.kode,nama:i.nama,merk:[i.merk,i.tipe].filter(Boolean).join(' / '),sn:i.sn||''};
+    if(i.pinjam){
+      const late=pinjamLate(i);
+      out.push(Object.assign({},base,i.pinjam,{aktif:true,late,lateDays:late?-daysTo(i.pinjam.rencana):0,kembali:'',kondisiKembali:'',catKembali:''}));
+    }
+    (i.riwayat||[]).forEach(r=>{
+      const lateDays=r.rencana&&r.kembali&&r.kembali>r.rencana?diffDays(r.rencana,r.kembali):0;
+      out.push(Object.assign({},base,r,{aktif:false,late:lateDays>0,lateDays}));
+    });
+  });
+  return out.sort((a,b)=>String(b.tgl).localeCompare(String(a.tgl))||String(b.dok||'').localeCompare(String(a.dok||''))||a.kode.localeCompare(b.kode));
+}
+function rhFiltered(){
+  const q=nz($('rhCari').value),st=$('rhStatus').value,d1=$('rhDari').value,d2=$('rhSampai').value;
+  return rhRows().filter(r=>
+    (!q||[r.kode,r.nama,r.merk,r.sn,r.oleh,r.proyek,r.dok,r.cat,r.catKembali].join(' ').toLowerCase().includes(q))
+    &&(!st||(st==='pinjam'?r.aktif:st==='kembali'?!r.aktif:r.late))
+    &&(!d1||String(r.tgl)>=d1)&&(!d2||String(r.tgl)<=d2));
+}
+function rhGroups(rows,mode){
+  if(!mode)return[{h:'',a:rows}];
+  const keyOf=r=>mode==='oleh'?(r.oleh||'(tanpa nama)'):mode==='dok'?(r.dok||'(tanpa nomor dokumen)'):r.kode;
+  const m=new Map();
+  rows.forEach(r=>{const k=keyOf(r);if(!m.has(k))m.set(k,[]);m.get(k).push(r)});
+  const head=(k,a)=>{
+    const f=a[0];
+    if(mode==='dok')return esc(k)+(f.dok?' · '+esc(f.oleh||'')+(f.proyek?' · '+esc(f.proyek):'')+' · '+esc(fmtID(f.tgl)):'')+' ('+a.length+' barang)';
+    if(mode==='oleh')return esc(k)+' ('+a.length+' peminjaman)';
+    return esc(k)+' — '+esc(f.nama)+' ('+a.length+' peminjaman)';
+  };
+  const arr=[...m.entries()].map(([k,a])=>({k,a,h:head(k,a)}));
+  arr.sort((x,y)=>mode==='dok'?String(y.k).localeCompare(String(x.k)):String(x.k).localeCompare(String(y.k)));
+  return arr;
+}
+function rhStatusHTML(r,plain){
+  const b=(c,t)=>plain?`<span class="${c==='er'?'kr':c==='wr'?'kk':''}">${t}</span>`:`<span class="bdg ${c}">${t}</span>`;
+  if(r.aktif)return r.late?b('er','Telat kembali'):b('wr','Dipinjam');
+  return r.late?b('er','Kembali telat '+r.lateDays+' hr')+(plain?'':''):b('ok','Dikembalikan');
+}
+function rhFilterText(){
+  const p=[],q=$('rhCari').value.trim();
+  if($('rhStatus').value)p.push('Status: '+$('rhStatus').selectedOptions[0].textContent);
+  if($('rhDari').value||$('rhSampai').value)p.push('Tgl pinjam: '+($('rhDari').value?fmtID($('rhDari').value):'…')+' s/d '+($('rhSampai').value?fmtID($('rhSampai').value):'…'));
+  if(q)p.push('Pencarian: "'+q+'"');
+  const g=$('rhGroup').value;if(g)p.push('Dikelompokkan '+$('rhGroup').selectedOptions[0].textContent.toLowerCase());
+  return p.join(' · ');
+}
+function renderRH(){
+  const all=rhRows();
+  const has=all.length>0;
+  $('rhEmpty').hidden=has;$('rhEmpty').textContent='Belum ada riwayat peminjaman.';
+  document.querySelector('#rhCard .tools').hidden=!has;document.querySelector('#rhCard .tw').hidden=!has;
+  const aktif=all.filter(r=>r.aktif).length,late=all.filter(r=>r.late).length,doks=new Set(all.filter(r=>r.dok).map(r=>r.dok)).size;
+  $('rhStat').textContent=has?all.length+' catatan':'';
+  $('rhChips').innerHTML=has?`<span class="chip static">Total <b>${all.length}</b></span>`
+    +`<span class="chip wr static">Sedang dipinjam <b>${aktif}</b></span>`
+    +`<span class="chip ok static">Sudah kembali <b>${all.length-aktif}</b></span>`
+    +(late?`<span class="chip er static">Telat <b>${late}</b></span>`:'')
+    +(doks?`<span class="chip static">Transaksi banyak barang <b>${doks}</b></span>`:''):'';
+  if(!has){$('rhRows').innerHTML='';$('rhMoreWrap').hidden=true;return}
+  const rows=rhFiltered(),sig=[$('rhCari').value,$('rhStatus').value,$('rhDari').value,$('rhSampai').value,$('rhGroup').value].join('|');
+  if(sig!==rhSig){rhSig=sig;rhShown=0}
+  const lim=Math.max(rhShown,RH_PAGE),mode=$('rhGroup').value;
+  let html='',n=0;
+  rhGroups(rows,mode).forEach(g=>{
+    if(n>=lim)return;
+    if(g.h)html+=`<tr class="grp"><td colspan="8">${g.h}</td></tr>`;
+    g.a.forEach(r=>{
+      if(n>=lim)return;n++;
+      const k=esc(r.kode),cat=[r.cat,r.catKembali].filter(Boolean).join(' / ');
+      html+=`<tr class="rhr"><td data-label="Tgl pinjam">${esc(fmtID(r.tgl))}</td>`
+        +`<td class="nm" data-label="Barang"><b>${esc(r.nama)}</b><small class="dsub"><a href="#${k}">${k}</a>${r.merk?' · '+esc(r.merk):''}</small></td>`
+        +`<td data-label="Peminjam">${esc(r.oleh||'-')}${r.proyek?`<small class="dsub">${esc(r.proyek)}</small>`:''}</td>`
+        +`<td data-label="Rencana">${r.rencana?esc(fmtID(r.rencana)):'<small>-</small>'}</td>`
+        +`<td data-label="Kembali">${r.kembali?esc(fmtID(r.kembali)):'<small>-</small>'}</td>`
+        +`<td data-label="Kondisi kembali">${r.kondisiKembali?esc(r.kondisiKembali):'<small>-</small>'}${cat?`<small class="dsub">${esc(cat)}</small>`:''}</td>`
+        +`<td data-label="Status">${rhStatusHTML(r)}</td>`
+        +`<td class="mono" data-label="No. dokumen">${r.dok?esc(r.dok):'<small>-</small>'}</td></tr>`;
+    });
+  });
+  $('rhRows').innerHTML=html;
+  const shown=n,rest=rows.length-shown;
+  $('rhMoreWrap').hidden=rest<=0;$('rhMore').textContent='Tampilkan lebih banyak ('+rest+' lagi)';
+  if(!rows.length){$('rhRows').innerHTML='<tr><td colspan="8" class="lsempty">Tidak ada catatan yang cocok dengan filter.</td></tr>'}
+  $('rhStat').textContent=rows.length===all.length?all.length+' catatan':rows.length+' dari '+all.length+' catatan';
+}
+['rhCari','rhStatus','rhDari','rhSampai','rhGroup'].forEach(id=>{$(id).addEventListener(id==='rhCari'?'input':'change',renderRH)});
+$('rhMore').onclick=()=>{rhShown=Math.max(rhShown,RH_PAGE)+RH_PAGE;renderRH()};
+$('rhReset').onclick=()=>{['rhCari','rhDari','rhSampai'].forEach(k=>$(k).value='');$('rhStatus').value='';$('rhGroup').value='';renderRH()};
+
+/* ---- cetak riwayat peminjaman (A4 landscape, simpan sebagai PDF) ---- */
+function loanHistDocHTML(rows,mode){
+  const org=(window.CONFIG&&CONFIG.ORG)||'',ft=rhFilterText();
+  const aktif=rows.filter(r=>r.aktif).length,late=rows.filter(r=>r.late).length;
+  const orang=new Set(rows.map(r=>nz(r.oleh))).size;
+  let n=0;
+  const row=r=>{
+    const cat=[r.cat,r.catKembali].filter(Boolean).join(' / ');
+    return `<tr><td>${++n}</td><td>${esc(fmtID(r.tgl))}</td><td><b>${esc(r.nama)}</b><br><small>${esc(r.kode)}${r.merk?' · '+esc(r.merk):''}</small></td>`
+      +`<td>${esc(r.oleh||'-')}${r.proyek?`<br><small>${esc(r.proyek)}</small>`:''}</td><td>${r.rencana?esc(fmtID(r.rencana)):'-'}</td>`
+      +`<td>${r.kembali?esc(fmtID(r.kembali)):'-'}</td><td>${r.kondisiKembali?esc(r.kondisiKembali):'-'}${cat?`<br><small>${esc(cat)}</small>`:''}</td>`
+      +`<td>${rhStatusHTML(r,true)}</td><td class="mono">${r.dok?esc(r.dok):'-'}</td></tr>`;
+  };
+  let body='';
+  rhGroups(rows,mode).forEach(g=>{
+    if(g.h)body+=`<tr class="grp"><td colspan="9">${g.h}</td></tr>`;
+    body+=g.a.map(row).join('');
+  });
+  return `<div class="doc land multi">
+  <div class="dh"><img class="dlogo" src="${LOGO}" alt=""><div class="dt">${org?`<div class="org">${esc(org)}</div>`:''}<h1>RIWAYAT PEMINJAMAN BARANG</h1><div class="no">${esc(ft||'Semua catatan')} · Dicetak ${esc(fmtID(today()))}</div></div></div>
+  <div class="sumline">Total <b>${rows.length}</b> catatan · <b>${orang}</b> peminjam · Sedang dipinjam <b>${aktif}</b> · Sudah kembali <b>${rows.length-aktif}</b> · Telat <b>${late}</b></div>
+  <table class="lt"><thead><tr><th>No</th><th>Tgl pinjam</th><th>Barang</th><th>Peminjam / proyek</th><th>Rencana kembali</th><th>Tgl kembali</th><th>Kondisi kembali / catatan</th><th>Status</th><th>No. dokumen</th></tr></thead><tbody>${body}</tbody></table>
+  <div class="dfoot">Dokumen ini dibuat dari aplikasi Registrasi Kode Barang. Data sesuai catatan saat dicetak.</div>
+ </div>`;
+}
+$('rhPdf').onclick=()=>{
+  const rows=rhFiltered();
+  if(!rows.length){toast('Tidak ada catatan untuk dicetak.',1);return}
+  $('printArea').innerHTML=loanHistDocHTML(rows,$('rhGroup').value);
+  document.title='Riwayat-Peminjaman-'+today();
+  doPrint();
+};
 
 /* ================= init ================= */
 async function init(){

@@ -731,3 +731,28 @@ dialog{overscroll-behavior:contain}
  #printArea .doc td.note{min-width:30mm}
  #printArea .doc .cb:first-child{margin-left:0}
 }
+
+/* ===== Riwayat peminjaman ===== */
+.rhcard .tools .rhd{display:flex;align-items:center;gap:6px;margin:0;color:var(--mu);font-size:12.5px;font-weight:500}
+.rhcard .tools .rhd input{max-width:150px}
+.rhcard td.mono{font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.rhcard td a{color:var(--ac);text-decoration:none;font-family:var(--mono);font-size:11.5px}
+.rhcard tr.grp td{padding:9px 8px;background:var(--ac2);color:var(--ac);font-weight:700;font-size:12.5px}
+.rhcard td.lsempty{padding:22px;text-align:center;color:var(--mu)}
+.rhcard small.dsub{display:block;margin-top:2px;color:var(--mu);font-size:11.5px}
+@media(max-width:700px){
+ .rhcard .tools .rhd{flex:1 1 calc(50% - 5px)}
+ .rhcard .tools .rhd input{max-width:none;flex:1;min-width:0}
+ .card.full.rhcard td,.card.full.rhcard tr:not(.open) td:not(:first-child){display:flex!important;position:static!important;width:100%!important;padding:4px 0!important;text-align:right}
+ .card.full.rhcard td.nm{padding-bottom:6px!important;text-align:left;font-size:15px}
+ .card.full.rhcard td.nm::before{display:none}
+ .card.full.rhcard td.nm small{display:block}
+ .card.full.rhcard tr.grp{padding:8px 12px;background:var(--ac2);box-shadow:none}
+ .card.full.rhcard tr.grp td::before{display:none}
+ .card.full.rhcard td.lsempty{justify-content:center}
+ .card.full.rhcard td small.dsub{text-align:right}
+ .card.full.rhcard td.nm small.dsub{text-align:left}
+}
+@media(max-width:700px){
+ .card.full.rhcard td.nm{flex-direction:column;align-items:flex-start!important;gap:2px}
+}

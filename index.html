@@ -199,6 +199,36 @@
   <div class="more" id="moreWrap" hidden><button type="button" class="btn sec" id="more"></button></div>
   <div class="empty" id="empty" hidden>Belum ada data.</div>
  </section>
+
+ <section class="card full rhcard" id="rhCard">
+  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Riwayat peminjaman <span id="rhStat" class="dim"></span></h2>
+  <div class="chips" id="rhChips"></div>
+  <div class="tools">
+   <input id="rhCari" placeholder="Cari peminjam / barang / proyek / no. dokumen">
+   <select id="rhStatus" aria-label="Filter status">
+    <option value="">Semua status</option>
+    <option value="pinjam">Sedang dipinjam</option>
+    <option value="kembali">Sudah kembali</option>
+    <option value="telat">Telat</option>
+   </select>
+   <label class="rhd">Dari <input type="date" id="rhDari"></label>
+   <label class="rhd">Sampai <input type="date" id="rhSampai"></label>
+   <select id="rhGroup" aria-label="Pengelompokan">
+    <option value="">Urut terbaru</option>
+    <option value="oleh">Per peminjam</option>
+    <option value="dok">Per nomor dokumen</option>
+    <option value="kode">Per barang</option>
+   </select>
+   <button class="btn sec" id="rhReset" type="button">Reset</button>
+   <button class="btn" id="rhPdf" type="button">Cetak / PDF</button>
+  </div>
+  <div class="tw"><table>
+   <thead><tr><th>Tgl pinjam</th><th>Barang</th><th>Peminjam</th><th>Rencana</th><th>Kembali</th><th>Kondisi kembali</th><th>Status</th><th>No. dokumen</th></tr></thead>
+   <tbody id="rhRows"></tbody>
+  </table></div>
+  <div class="more" id="rhMoreWrap" hidden><button type="button" class="btn sec" id="rhMore"></button></div>
+  <div class="empty" id="rhEmpty" hidden>Belum ada riwayat peminjaman.</div>
+ </section>
 </main>
 <footer class="foot">Registrasi Kode Barang · data tersimpan aman di Google Sheets</footer>
 
