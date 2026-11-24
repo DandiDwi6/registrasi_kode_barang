@@ -756,3 +756,78 @@ dialog{overscroll-behavior:contain}
 @media(max-width:700px){
  .card.full.rhcard td.nm{flex-direction:column;align-items:flex-start!important;gap:2px}
 }
+
+/* ===== tampilan HP lebih ringkas ===== */
+.mobar,.moact,.mohint,.totop{display:none}
+.bulkbox,.actbox{display:contents}
+.cb{display:none}
+@media(max-width:700px){
+ .tools.mobar{display:flex;position:sticky;top:0;z-index:30;margin:8px 0 4px;padding:8px 0 6px;background:var(--card);box-shadow:0 10px 14px -12px rgba(10,40,90,.4)}
+ .qf{display:flex;gap:8px;flex:1 1 100%;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .qf::-webkit-scrollbar{display:none}
+ .qf .chip{flex:none;white-space:nowrap}
+ .tools:not(.mobar) #cari,#fstat{display:none}
+ .tools:not(.mobar){margin:6px 0}
+ .mohint{display:block;margin:4px 0 8px}
+ .moact{display:inline-flex;flex:0 0 auto!important;justify-content:center}
+ .actbox{display:none;flex:1 1 100%;gap:8px;flex-wrap:wrap}
+ .actbox.open{display:flex}
+ .actbox .btn{flex:1 1 calc(33% - 8px)}
+ .bulkbox{display:none;flex:1 1 100%;gap:8px;flex-wrap:wrap}
+ .bulkbox.has{display:flex}
+ .bulkbox select,.bulkbox .btn{flex:1 1 calc(50% - 4px)}
+ .bulkbox #bulkPrint{flex-basis:calc(50% - 4px)}
+
+ /* baris barang: ringkas (2 baris), ketuk untuk membuka detail & aksi */
+ .card.full #rows tr{padding-left:46px}
+ .card.full #rows td.code{padding-right:0}
+ .card.full #rows tr td:first-child{left:13px;right:auto}
+ .card.full #rows tr.open td:first-child{top:14px}
+ .card.full #rows tr.open td.cb{display:none}
+ .card.full #rows tr:not(.open){display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:8px;align-items:center;margin-bottom:8px;padding-top:9px;padding-bottom:9px;border-radius:12px}
+ .card.full #rows tr:not(.open)::after{display:none}
+ .card.full #rows tr:not(.open) td{display:none}
+ .card.full #rows tr:not(.open) td:first-child{display:block;position:absolute;top:50%;transform:translateY(-50%)}
+ .card.full #rows tr:not(.open) td.code{display:flex;grid-column:1;grid-row:1;padding:0;font-size:11.5px}
+ .card.full #rows tr:not(.open) td.nm{display:block;grid-column:1;grid-row:2;padding:1px 0 0;overflow:hidden;font-size:14.5px;font-weight:600;line-height:1.3;text-overflow:ellipsis;white-space:nowrap}
+ .card.full #rows tr:not(.open) td.cb{display:flex;grid-column:2;grid-row:1/span 2;flex-direction:column;align-items:flex-end;gap:3px;padding:0}
+ .card.full #rows tr:not(.open) td.cb:empty{display:none}
+
+ /* kartu P3K & Riwayat terlipat dulu */
+ .card.foldable>h2{position:relative;padding-right:28px;cursor:pointer}
+ .card.foldable>h2::after{content:'';position:absolute;right:4px;top:50%;width:9px;height:9px;border-right:2px solid var(--mu);border-bottom:2px solid var(--mu);transform:translateY(-70%) rotate(45deg);transition:transform .15s}
+ .card.foldable:not(.closed)>h2::after{transform:translateY(-30%) rotate(225deg)}
+ .card.foldable.closed>*:not(h2):not(#p3kAlerts):not(#mobar){display:none!important}
+ .card.foldable.closed{padding-top:16px;padding-bottom:16px}
+ .card.foldable.closed>h2{margin-bottom:0}
+
+ .totop{position:fixed;left:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:40;display:grid;place-items:center;width:46px;height:46px;border:0;border-radius:16px;background:var(--card);color:var(--ac);font-size:20px;font-weight:700;box-shadow:0 8px 20px -6px rgba(10,40,90,.4);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s,transform .2s;cursor:pointer}
+ .totop.on{opacity:1;pointer-events:auto;transform:none}
+}
+@media print{.totop{display:none!important}}
+@media(max-width:700px){
+ #alerts{display:none} /* sudah diwakili chip filter cepat di bawah kolom cari */
+}
+@media(max-width:700px){
+ .card.full #rows tr td:first-child{display:block}
+ .card.full #rows tr td:first-child::before{display:none}
+}
+@media(max-width:700px){
+ /* lima chip harus muat satu baris tanpa terpotong (lebar 340-430px); tetap bisa digeser bila layar sangat sempit */
+ .qf{gap:5px}
+ .qf .chip{flex:1 1 auto;padding:6px 8px;font-size:12px;text-align:center}
+ .qf .chip b{font-weight:700}
+}
+@media(max-width:700px){
+ .qf{gap:4px}
+ .qf .chip{padding:6px 7px}
+}
+@media(max-width:700px){
+ .qf .chip{padding:6px 6px;font-size:11.5px}
+}
+
+@media(max-width:700px){
+ /* database terlipat: kolom cari tetap terlihat, chip & daftar disembunyikan */
+ .card.foldable.closed>#mobar{display:flex!important;position:static;box-shadow:none;margin:10px 0 0;padding:0}
+ .card.foldable.closed>#mobar .qf{display:none}
+}

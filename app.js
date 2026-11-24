@@ -141,6 +141,8 @@ function statusMatch(it,st){
   if(st==='lewat'||st==='segera')return kalState(it).k===st;
   if(st==='pinjam')return !!it.pinjam;
   if(st==='telat')return pinjamLate(it);
+  if(st==='kal')return ['lewat','segera'].includes(kalState(it).k);
+  if(st==='rusak')return it.kondisi==='Rusak'||it.kondisi==='Perlu perbaikan';
   if(st==='tersedia')return !it.pinjam;
   return true;
 }
@@ -287,6 +289,7 @@ function updateBulk(){
   $('bulkPinjam').textContent='Pinjam terpilih ('+sel.size+')';$('bulkPinjam').disabled=!sel.size;
   if($('dlgToolbox').open&&tbTab==='pinjam')tbRender();
   $('bulkPrint').disabled=!sel.size;
+  $('bulkBox').classList.toggle('has',sel.size>0);
   $('selAll').checked=visible.length>0&&visible.every(k=>sel.has(k));
   $('selAllM').checked=$('selAll').checked;$('selAllMt').textContent='Pilih semua hasil ('+visible.length+')';
 }
@@ -371,6 +374,13 @@ function render(){
     const kc=i.kondisi==='Rusak'?' k-rusak':i.kondisi==='Perlu kalibrasi'?' k-kal':i.kondisi==='Perlu perbaikan'?' k-perb':'';
     const kon=i.kondisi==='Baik'?'<span class="plain">Baik</span>':`<span class="bdg ${kondCls(i.kondisi)}">${esc(i.kondisi)}</span>`;
     const mt=esc([i.merk,i.tipe].filter(Boolean).join(' / '));
+    const cbl=[]; // lencana ringkas untuk baris di HP (maks. 2, yang paling penting dulu)
+    if(i.pinjam)cbl.push([pinjamLate(i)?3:1,`<span class="bdg ${pinjamLate(i)?'er':'wr'}">${pinjamLate(i)?'Telat':'Dipinjam'}</span>`]);
+    if(i.kondisi==='Rusak')cbl.push([3,'<span class="bdg er">Rusak</span>']);
+    else if(i.kondisi==='Perlu perbaikan'||i.kondisi==='Perlu kalibrasi')cbl.push([2,`<span class="bdg ${kondCls(i.kondisi)}">${esc(i.kondisi)}</span>`]);
+    if(ks.k==='lewat')cbl.push([3,`<span class="bdg ${ks.c}">Kal. lewat</span>`]);else if(ks.k==='segera')cbl.push([1,`<span class="bdg ${ks.c}">Kal. segera</span>`]);
+    cbl.sort((x,y)=>y[0]-x[0]);
+    const cb=cbl.slice(0,2).map(x=>x[1]).join('')+(cbl.length>2?`<span class="bdg">+${cbl.length-2}</span>`:'');
     const ib=(at,cls,tt,ic,tx)=>`<button class="btn ${cls} ib" ${at}="${k}" title="${tt}" aria-label="${tt}"><svg viewBox="0 0 24 24">${ic}</svg><span>${tx}</span></button>`;
     const IC={p:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
       e:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -379,7 +389,7 @@ function render(){
       r:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       f:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
       d:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'};
-    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
+    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="cb">${cb}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
     <td class="aksi">${ib('data-p','sec','Cetak label',IC.p,'Label')}${ib('data-e','sec','Edit',IC.e,'Edit')}${i.pinjam?ib('data-k','sec','Kembalikan',IC.k,'Kembalikan'):ib('data-b','sec','Pinjamkan',IC.b,'Pinjam')}${i.pinjam?ib('data-j','sec','Cetak form peminjaman',IC.f,'Form'):''}${hasHist?ib('data-r','sec','Riwayat',IC.r,'Riwayat'):''}${ib('data-d','dg','Hapus',IC.d,'Hapus')}</td></tr>`;
   }).join('');
   $('empty').hidden=list.length>0;
@@ -392,6 +402,7 @@ function render(){
   updateBulk();
   renderP3k();
   renderRH();
+  updateQF();
   showNext();
 }
 $('rows').onclick=async e=>{
@@ -2087,6 +2098,39 @@ $('rhPdf').onclick=()=>{
   document.title='Riwayat-Peminjaman-'+today();
   doPrint();
 };
+
+
+/* ================= tampilan HP: filter cepat, aksi ringkas, kartu lipat, tombol ke atas ================= */
+const QF=[['','Semua'],['pinjam','Dipinjam'],['telat','Telat'],['kal','Kalibrasi'],['rusak','Rusak']];
+function updateQF(){
+  const t=tools(),cnt={};QF.forEach(([v])=>cnt[v]=v?t.filter(i=>statusMatch(i,v)).length:t.length);
+  const cur=$('fstat').value;
+  $('qf').innerHTML=QF.map(([v,l])=>`<button type="button" class="chip${cur===v?' on':''}" data-v="${v}">${l}${v&&cur===v?' <b>'+cnt[v]+'</b>':''}</button>`).join('');
+  if($('cariM').value!==$('cari').value)$('cariM').value=$('cari').value;
+}
+$('qf').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;$('fstat').value=$('fstat').value===b.dataset.v?'':b.dataset.v;render()};
+$('cariM').addEventListener('input',()=>{
+  $('cari').value=$('cariM').value;render();
+  const c=$('dbCard');if($('cariM').value&&c.classList.contains('closed'))c.querySelector('h2').click(); // mengetik di kolom cari membuka database
+});
+$('actToggle').onclick=()=>{const o=$('actBox').classList.toggle('open');$('actToggle').textContent=o?'Aksi lainnya ▴':'Aksi lainnya ▾';$('actToggle').setAttribute('aria-expanded',o)};
+['dbCard','p3kCard','rhCard'].forEach(id=>{ // di HP kartu ini bisa dilipat agar halaman tidak terlalu panjang
+  const c=$(id),h=c.querySelector('h2');
+  let startOpen=false;
+  if(id==='dbCard'){try{startOpen=localStorage.getItem('kode-barang-dbopen')==='1'}catch(e){}} // pilihan buka/tutup database diingat
+  c.classList.add('foldable');if(!startOpen)c.classList.add('closed');
+  h.setAttribute('role','button');h.tabIndex=0;h.setAttribute('aria-expanded',startOpen);
+  const tog=()=>{
+    c.classList.toggle('closed');const open=!c.classList.contains('closed');
+    h.setAttribute('aria-expanded',open);
+    if(id==='dbCard'){try{localStorage.setItem('kode-barang-dbopen',open?'1':'0')}catch(e){}}
+  };
+  h.addEventListener('click',tog);
+  h.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog()}});
+});
+let ttRaf=0;
+window.addEventListener('scroll',()=>{if(ttRaf)return;ttRaf=requestAnimationFrame(()=>{ttRaf=0;$('toTop').classList.toggle('on',window.scrollY>700)})},{passive:true});
+$('toTop').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
 
 /* ================= init ================= */
 async function init(){

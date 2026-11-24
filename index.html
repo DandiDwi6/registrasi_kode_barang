@@ -169,9 +169,13 @@
   <div class="empty" id="p3kEmpty" hidden>Belum ada kotak P3K. Pilih klasifikasi P3K di formulir untuk menambah kotak.</div>
  </section>
 
- <section class="card full">
+ <section class="card full" id="dbCard">
   <h2 class="h2flex"><span class="num">3</span>Database barang <span id="stat"></span></h2>
   <div class="chips" id="alerts"></div>
+  <div class="tools mobar" id="mobar">
+   <input id="cariM" placeholder="Cari kode / nama / S/N / lokasi / peminjam" aria-label="Cari barang" autocomplete="off">
+   <div class="qf" id="qf" aria-label="Filter cepat"></div>
+  </div>
   <div class="tools">
    <input id="cari" placeholder="Cari kode / nama / S/N / lokasi / peminjam">
    <select id="fkat"><option value="">Semua klasifikasi</option></select>
@@ -179,18 +183,26 @@
     <option value="">Semua status</option>
     <option value="lewat">Kalibrasi lewat</option>
     <option value="segera">Kalibrasi ≤ 30 hari</option>
+    <option value="kal">Kalibrasi lewat / ≤ 30 hari</option>
     <option value="pinjam">Sedang dipinjam</option>
     <option value="telat">Telat kembali</option>
     <option value="tersedia">Tersedia</option>
+    <option value="rusak">Rusak / perlu perbaikan</option>
    </select>
-   <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
-   <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
-   <button class="btn sec" id="bulkPinjam" disabled>Pinjam terpilih (0)</button>
-   <button class="btn sec" id="csvImp">Impor CSV</button>
-   <button class="btn sec" id="pdfList">Cetak / PDF</button>
-   <button class="btn sec" id="csv">Ekspor CSV</button>
+   <span class="bulkbox" id="bulkBox">
+    <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
+    <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
+    <button class="btn sec" id="bulkPinjam" disabled>Pinjam terpilih (0)</button>
+   </span>
+   <button type="button" class="btn sec moact" id="actToggle" aria-expanded="false">Aksi lainnya ▾</button>
+   <span class="actbox" id="actBox">
+    <button class="btn sec" id="csvImp">Impor CSV</button>
+    <button class="btn sec" id="pdfList">Cetak / PDF</button>
+    <button class="btn sec" id="csv">Ekspor CSV</button>
+   </span>
    <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
   </div>
+  <p class="hint mohint">Ketuk barang untuk detail &amp; aksi · centang di kiri untuk memilih beberapa barang.</p>
   <label class="selallm"><input type="checkbox" id="selAllM"> <span id="selAllMt">Pilih semua</span></label>
   <div class="tw"><table>
    <thead><tr><th><input type="checkbox" id="selAll" aria-label="Pilih semua"></th><th>Kode</th><th>Nama barang</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Kalibrasi</th><th>Status</th><th>Aksi</th></tr></thead>
@@ -231,6 +243,8 @@
  </section>
 </main>
 <footer class="foot">Registrasi Kode Barang · data tersimpan aman di Google Sheets</footer>
+
+<button type="button" class="totop" id="toTop" aria-label="Kembali ke atas">↑</button>
 
 <button type="button" class="fab" id="scanFab" aria-label="Scan QR label"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg></button>
 
