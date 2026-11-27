@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script>try{var t=localStorage.getItem("kode-barang-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
@@ -30,32 +31,233 @@
   <symbol id="i-driver" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="9" rx="2.5"/><path d="M12 11v11M11 22h2"/></symbol>
  </defs>
 </svg>
-<div class="bgfx" aria-hidden="true">
- <i class="ic" style="left:3%;top:10%;--s:150px;--dx:30px;--dy:40px;--r:30deg;--d:30s;--dl:0s"><svg class="spin" style="--sd:40s"><use href="#i-gear"/></svg></i>
- <i class="ic" style="left:9%;top:52%;--s:120px;--dx:40px;--dy:-30px;--r:60deg;--d:34s;--dl:-6s"><svg><use href="#i-wrench"/></svg></i>
- <i class="ic" style="left:90%;top:12%;--s:110px;--dx:-30px;--dy:50px;--r:-40deg;--d:28s;--dl:-3s"><svg><use href="#i-bolt"/></svg></i>
- <i class="ic" style="left:85%;top:50%;--s:120px;--dx:-40px;--dy:-30px;--r:50deg;--d:36s;--dl:-10s"><svg><use href="#i-plug"/></svg></i>
- <i class="ic" style="left:92%;top:78%;--s:130px;--dx:-30px;--dy:-40px;--r:-30deg;--d:38s;--dl:-8s"><svg><use href="#i-meter"/></svg></i>
- <i class="ic" style="left:6%;top:84%;--s:90px;--dx:30px;--dy:-40px;--r:90deg;--d:32s;--dl:-4s"><svg class="spin" style="--sd:55s"><use href="#i-nut"/></svg></i>
- <i class="ic" style="left:2%;top:34%;--s:110px;--dx:30px;--dy:30px;--r:-60deg;--d:35s;--dl:-12s"><svg><use href="#i-driver"/></svg></i>
- <i class="ic" style="left:80%;top:32%;--s:80px;--dx:-20px;--dy:30px;--r:0deg;--d:26s;--dl:-2s"><svg class="spin rev" style="--sd:30s"><use href="#i-gear"/></svg></i>
- <i class="ic" style="left:17%;top:27%;--s:60px;--dx:20px;--dy:40px;--r:30deg;--d:24s;--dl:-7s"><svg><use href="#i-bolt"/></svg></i>
- <i class="ic" style="left:76%;top:88%;--s:70px;--dx:-30px;--dy:-20px;--r:-90deg;--d:30s;--dl:-9s"><svg class="spin" style="--sd:45s"><use href="#i-nut"/></svg></i>
- <i class="ic" style="left:72%;top:5%;--s:90px;--dx:-30px;--dy:30px;--r:-50deg;--d:33s;--dl:-5s"><svg><use href="#i-wrench"/></svg></i>
- <i class="ic" style="left:20%;top:90%;--s:80px;--dx:40px;--dy:-30px;--r:40deg;--d:31s;--dl:-11s"><svg><use href="#i-plug"/></svg></i>
- <i class="ic" style="left:15%;top:6%;--s:100px;--dx:30px;--dy:40px;--r:30deg;--d:36s;--dl:-14s"><svg><use href="#i-meter"/></svg></i>
- <i class="ic" style="left:60%;top:92%;--s:100px;--dx:-20px;--dy:-30px;--r:0deg;--d:29s;--dl:-1s"><svg class="spin" style="--sd:50s"><use href="#i-gear"/></svg></i>
- <i class="ic" style="left:95%;top:95%;--s:90px;--dx:-30px;--dy:-30px;--r:70deg;--d:34s;--dl:-13s"><svg><use href="#i-driver"/></svg></i>
- <i class="ic" style="left:48%;top:3%;--s:70px;--dx:30px;--dy:30px;--r:-30deg;--d:27s;--dl:-6s"><svg><use href="#i-bolt"/></svg></i>
+<div class="app" id="app">
+ <aside class="sidebar" id="sidebar" aria-label="Menu utama">
+  <div class="sbtop">
+   <img class="logo lt" src="icons/eei-logo.png" alt="PT. Energi Entlemi Indonesia">
+   <img class="logo dk" src="icons/eei-logo-white.png" alt="">
+   <button type="button" class="sbtog" id="sbToggle" aria-label="Ciutkan menu" title="Ciutkan / lebarkan menu"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+  </div>
+  <nav class="sbnav" id="sbNav">
+   <small class="sbh">Menu</small>
+   <button type="button" class="nv" data-go="dash" title="Dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="t">Dashboard</span></button>
+   <button type="button" class="nv" data-go="barang" title="Barang"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg><span class="t">Barang</span></button>
+   <button type="button" class="nv" data-go="pinjam" title="Peminjaman"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg><span class="t">Peminjaman</span><span class="nb" data-nb="pinjam" hidden></span></button>
+   <button type="button" class="nv" data-go="kal" title="Kalibrasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg><span class="t">Kalibrasi</span><span class="nb" data-nb="kal" hidden></span></button>
+   <button type="button" class="nv" data-go="p3k" title="Kotak P3K"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg><span class="t">Kotak P3K</span><span class="nb" data-nb="p3k" hidden></span></button>
+   <button type="button" class="nv" data-go="label" title="Label cetak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg><span class="t">Label cetak</span></button>
+   <small class="sbh">Aksi cepat</small>
+   <button type="button" class="nv" id="scanBtn" title="Scan QR"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg><span class="t">Scan QR</span></button>
+   <button type="button" class="nv" id="opBtn" title="Stok opname"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg><span class="t">Stok opname</span></button>
+   <button type="button" class="nv" id="tbBtn" title="Toolbox pinjam"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18v12H3zM8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3M3 13h18M11 12h2v2h-2z"/></svg><span class="t">Toolbox pinjam</span></button>
+  </nav>
+  <div class="sbfoot">
+   <button type="button" class="nv" id="install" hidden title="Pasang aplikasi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg><span class="t">Pasang aplikasi</span></button>
+   <button type="button" class="nv" id="themeBtn" title="Ganti tema"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="t" id="themeTxt">Mode gelap</span></button>
+  </div>
+ </aside>
+
+ <div class="main">
+  <div class="topbar">
+   <img class="logo mlogo lt" src="icons/eei-logo.png" alt="EEI">
+   <img class="logo mlogo dk" src="icons/eei-logo-white.png" alt="">
+   <div class="ttl"><div class="pgh" role="heading" aria-level="1" id="pgTitle">Dashboard</div><p class="pgs" id="pgSub"></p></div>
+   <div class="tact"><button type="button" class="btn" id="addBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span class="txt" id="addTxt">Tambah barang</span></button></div>
+  </div>
+
+  <div class="pages" id="pages">
+
+   <section class="page" id="pg-dash">
+    <div class="kpis">
+     <button type="button" class="kpi hero" data-kpi="all"><i class="ki"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></i><span>Total barang</span><b id="kTot">0</b><small id="kTotS"></small></button>
+     <button type="button" class="kpi" data-kpi="pinjam"><i class="ki"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i><span>Sedang dipinjam</span><b id="kPin">0</b><small id="kPinS"></small></button>
+     <button type="button" class="kpi" data-kpi="kal"><i class="ki wr"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></i><span>Perlu perhatian kalibrasi</span><b id="kKal">0</b><small id="kKalS"></small></button>
+     <button type="button" class="kpi" data-kpi="p3k"><i class="ki er"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg></i><span>Stok P3K perlu isi ulang</span><b id="kP3k">0</b><small id="kP3kS"></small></button>
+    </div>
+    <div class="dsum">
+     <section class="card">
+  <h2><span class="num"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"/></svg></span>Kondisi barang <span id="sumTot" class="dim"></span></h2>
+  <div class="sum" id="sum">
+   <button type="button" class="sc ok" data-f="baik"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></i><b id="sBaik">0</b><span>Baik</span></button>
+   <button type="button" class="sc or" data-f="kal"><i class="ico"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></i><b id="sKal">0</b><span>Perlu kalibrasi</span></button>
+   <button type="button" class="sc wr" data-f="perb"><i class="ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i><b id="sPerb">0</b><span>Perlu perbaikan</span></button>
+   <button type="button" class="sc er" data-f="rusak"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></i><b id="sRusak">0</b><span>Rusak</span></button>
+   <button type="button" class="sc in" data-f="pinjam"><i class="ico"><svg viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i><b id="sPinjam">0</b><span>Sedang dipinjam</span></button>
+   <button type="button" class="sc ok" data-f="tsd"><i class="ico"><svg viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></i><b id="sTsd">0</b><span>Tersedia</span></button>
+  </div>
+  <p class="hint">Klik kotak untuk melihat daftar barangnya.</p>
+ </section>
+    </div>
+    <div class="dgrid">
+     <section class="card"><h2>Barang per klasifikasi</h2><div id="dKlas"></div></section>
+     <section class="card"><h2>Aktivitas terbaru</h2><div class="dlist" id="dAct"></div></section>
+     <section class="card"><h2>Kalibrasi jatuh tempo<button type="button" class="more" data-go="kal">Lihat semua</button></h2><div class="dlist" id="dKal"></div></section>
+     <section class="card"><h2>Sedang dipinjam<button type="button" class="more" data-go="pinjam">Lihat semua</button></h2><div class="dlist" id="dPin"></div></section>
+     <section class="card"><h2>Stok P3K perlu perhatian<button type="button" class="more" data-go="p3k">Buka P3K</button></h2><div class="dlist" id="dP3k"></div></section>
+    </div>
+   </section>
+
+   <section class="page" id="pg-barang" hidden>
+    <section class="card full" id="dbCard">
+  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg></span>Database barang <span id="stat"></span></h2>
+  <div class="chips" id="alerts"></div>
+  <div class="tools mobar" id="mobar">
+   <input id="cariM" placeholder="Cari kode / nama / S/N / lokasi / peminjam" aria-label="Cari barang" autocomplete="off">
+   <div class="qf" id="qf" aria-label="Filter cepat"></div>
+  </div>
+  <div class="tools">
+   <input id="cari" placeholder="Cari kode / nama / S/N / lokasi / peminjam">
+   <select id="fkat"><option value="">Semua klasifikasi</option></select>
+   <select id="fstat">
+    <option value="">Semua status</option>
+    <option value="lewat">Kalibrasi lewat</option>
+    <option value="segera">Kalibrasi ≤ 30 hari</option>
+    <option value="kal">Kalibrasi lewat / ≤ 30 hari</option>
+    <option value="pinjam">Sedang dipinjam</option>
+    <option value="telat">Telat kembali</option>
+    <option value="tersedia">Tersedia</option>
+    <option value="rusak">Rusak / perlu perbaikan</option>
+   </select>
+   <span class="bulkbox" id="bulkBox">
+    <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
+    <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
+    <button class="btn sec" id="bulkPinjam" disabled>Pinjam terpilih (0)</button>
+   </span>
+   <button type="button" class="btn sec moact" id="actToggle" aria-expanded="false">Aksi lainnya ▾</button>
+   <span class="actbox" id="actBox">
+    <button class="btn sec" id="csvImp">Impor CSV</button>
+    <button class="btn sec" id="pdfList">Cetak / PDF</button>
+    <button class="btn sec" id="csv">Ekspor CSV</button>
+    <button class="btn sec" id="xlsx">Ekspor Excel (foto)</button>
+   </span>
+   <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
+  </div>
+  <p class="hint mohint">Ketuk barang untuk detail &amp; aksi · centang di kiri untuk memilih beberapa barang.</p>
+  <label class="selallm"><input type="checkbox" id="selAllM"> <span id="selAllMt">Pilih semua</span></label>
+  <div class="tw"><table>
+   <thead><tr><th><input type="checkbox" id="selAll" aria-label="Pilih semua"></th><th>Kode</th><th>Nama barang</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Kalibrasi</th><th>Status</th><th>Aksi</th></tr></thead>
+   <tbody id="rows"></tbody>
+  </table></div>
+  <div class="more" id="moreWrap" hidden><button type="button" class="btn sec" id="more"></button></div>
+  <div class="empty" id="empty" hidden>Belum ada data.</div>
+ </section>
+   </section>
+
+   <section class="page" id="pg-pinjam" hidden>
+    <div class="pjacts">
+     <button type="button" class="pjc" id="pjGoPinjam"><i class="ki"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i><span><b>Pinjam banyak barang</b><small>Pilih beberapa alat sekaligus, satu formulir PDF</small></span></button>
+     <button type="button" class="pjc" id="pjGoKembali"><i class="ki ok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg></i><span><b>Kembalikan barang</b><small>Boleh sebagian, kondisi dicatat per barang</small></span></button>
+    </div>
+    <section class="card full rhcard" id="rhCard">
+  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Riwayat peminjaman <span id="rhStat" class="dim"></span></h2>
+  <div class="chips" id="rhChips"></div>
+  <div class="tools">
+   <input id="rhCari" placeholder="Cari peminjam / barang / proyek / no. dokumen">
+   <select id="rhStatus" aria-label="Filter status">
+    <option value="">Semua status</option>
+    <option value="pinjam">Sedang dipinjam</option>
+    <option value="kembali">Sudah kembali</option>
+    <option value="telat">Telat</option>
+   </select>
+   <label class="rhd">Dari <input type="date" id="rhDari"></label>
+   <label class="rhd">Sampai <input type="date" id="rhSampai"></label>
+   <select id="rhGroup" aria-label="Pengelompokan">
+    <option value="">Urut terbaru</option>
+    <option value="oleh">Per peminjam</option>
+    <option value="dok">Per nomor dokumen</option>
+    <option value="kode">Per barang</option>
+   </select>
+   <button class="btn sec" id="rhReset" type="button">Reset</button>
+   <button class="btn" id="rhPdf" type="button">Cetak / PDF</button>
+  </div>
+  <div class="tw"><table>
+   <thead><tr><th>Tgl pinjam</th><th>Barang</th><th>Peminjam</th><th>Rencana</th><th>Kembali</th><th>Kondisi kembali</th><th>Status</th><th>No. dokumen</th></tr></thead>
+   <tbody id="rhRows"></tbody>
+  </table></div>
+  <div class="more" id="rhMoreWrap" hidden><button type="button" class="btn sec" id="rhMore"></button></div>
+  <div class="empty" id="rhEmpty" hidden>Belum ada riwayat peminjaman.</div>
+ </section>
+   </section>
+
+   <section class="page" id="pg-kal" hidden>
+    <section class="card" id="kalCard">
+     <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></span>Jadwal kalibrasi <span id="kalStat" class="dim"></span></h2>
+     <div class="qf qfk" id="kalChips"></div>
+     <div class="tw"><table class="kt">
+      <thead><tr><th>Kode</th><th>Nama barang</th><th>Terakhir</th><th>Berikutnya</th><th>Status</th><th>No. sertifikat</th></tr></thead>
+      <tbody id="kalRows"></tbody>
+     </table></div>
+     <div class="empty" id="kalEmpty" hidden></div>
+    </section>
+   </section>
+
+   <section class="page" id="pg-p3k" hidden>
+    <section class="card full" id="p3kCard">
+  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg></span>Kotak P3K <span id="p3kStat" class="dim"></span></h2>
+  <div class="cardact"><button type="button" class="btn" id="p3kNew">+ Tambah kotak P3K</button></div>
+  <div class="chips" id="p3kAlerts"></div>
+  <p class="hint">Klik kotak untuk melihat isi &amp; mencatat pemakaian. Stok berkurang otomatis, dan label QR kotak bisa dipindai siapa saja untuk mencatat pemakaian.</p>
+  <div id="p3kList"></div>
+  <div class="empty" id="p3kEmpty" hidden>Belum ada kotak P3K. Klik tombol "Tambah kotak P3K" di atas.</div>
+ </section>
+   </section>
+
+   <section class="page" id="pg-label" hidden>
+    <div class="lblpage">
+     <section class="card">
+  <h2><span class="num"><svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg></span>Label cetak <span id="lblDim" class="dim"></span></h2>
+  <div class="lblwrap"><div id="label" class="lbl"></div></div>
+  <div class="lblctl">
+   <div><label for="lblSize">Ukuran label</label>
+    <select id="lblSize">
+     <option value="100x60">100 × 60 mm (besar)</option>
+     <option value="75x45">75 × 45 mm (standar)</option>
+     <option value="60x40">60 × 40 mm</option>
+     <option value="50x30">50 × 30 mm</option>
+     <option value="40x25">40 × 25 mm (kecil)</option>
+     <option value="30x20">30 × 20 mm (mini)</option>
+     <option value="custom">Kustom…</option>
+    </select></div>
+   <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
+   <button class="btn" id="cetak">Cetak label</button>
+  </div>
+  <div id="lblCustom" class="row cust" hidden>
+   <div><label for="lblW">Lebar (mm)</label><input id="lblW" type="number" min="20" max="150" value="60"></div>
+   <div><label for="lblH">Tinggi (mm)</label><input id="lblH" type="number" min="15" max="100" value="40"></div>
+  </div>
+  <p class="persheet" id="perSheet"></p>
+ </section>
+     <p class="hint">Label yang tampil di sini adalah barang yang terakhir dibuat atau dipilih. Untuk mencetak label barang lain, buka <b>Barang</b> lalu klik tombol Label pada barangnya.</p>
+    </div>
+   </section>
+
+  </div>
+  <footer class="foot">Registrasi Kode Barang · data tersimpan aman di Google Sheets</footer>
+ </div>
 </div>
-<header>
- <h1><img class="brandlogo" src="icons/eei-logo-white.png" alt="PT. Energi Entlemi Indonesia">Registrasi Kode Barang</h1>
- <p>Kode Barang · isi data, kode otomatis, cetak label, pantau kalibrasi &amp; peminjaman</p>
- <div class="hact"><button type="button" class="instbtn" id="scanBtn"><svg viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 12h10"/></svg> Scan QR</button><button type="button" class="instbtn" id="opBtn"><svg viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg> Stok opname</button><button type="button" class="instbtn" id="tbBtn"><svg viewBox="0 0 24 24"><path d="M3 8h18v12H3zM8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3M3 13h18M11 12h2v2h-2z"/></svg> Toolbox pinjam</button><button type="button" class="instbtn" id="install" hidden>Pasang aplikasi</button></div>
-</header>
-<main>
+
+<nav class="bnav" id="bnav" aria-label="Menu">
+ <button type="button" data-go="dash"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard</span></button>
+ <button type="button" data-go="barang"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/></svg><span>Barang</span></button>
+ <button type="button" data-go="pinjam"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg><span>Pinjam</span><i class="nd" data-nb="pinjam" hidden></i></button>
+ <button type="button" data-go="kal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg><span>Kalibrasi</span><i class="nd" data-nb="kal" hidden></i></button>
+ <button type="button" id="moreBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg><span>Lainnya</span><i class="nd" data-nb="p3k" hidden></i></button>
+</nav>
+<div class="sheetback" id="moreBack"></div>
+<div class="sheet" id="moreSheet" role="dialog" aria-label="Menu lainnya">
+ <i class="grab"></i>
+ <button type="button" class="nv" data-go="p3k"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg><span class="t">Kotak P3K</span><span class="nb" data-nb="p3k" hidden></span></button>
+ <button type="button" class="nv" data-go="label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg><span class="t">Label cetak</span></button>
+ <button type="button" class="nv" data-do="op"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg><span class="t">Stok opname</span></button>
+ <button type="button" class="nv" data-do="tb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h18v12H3zM8 8V5a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3M3 13h18M11 12h2v2h-2z"/></svg><span class="t">Toolbox pinjam</span></button>
+ <button type="button" class="nv" data-do="install" id="moreInstall" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg><span class="t">Pasang aplikasi</span></button>
+ <button type="button" class="nv" data-do="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span class="t">Ganti tema</span></button>
+</div>
+
+<div class="panelback" id="panelBack"></div>
+<aside class="formpanel" id="formPanel" aria-label="Formulir data barang" aria-hidden="true">
  <section class="card">
-  <h2><span class="num">1</span>Data barang</h2>
+  <h2 class="fph"><span id="fpTitle">Data barang</span><button type="button" class="xbtn" id="panelClose" aria-label="Tutup formulir">✕</button></h2>
   <div id="editbar" class="editbar" hidden>
    <span>Mode edit: <b id="editkode"></b></span>
    <button type="button" class="btn dg" id="batal">Batal</button>
@@ -125,136 +327,15 @@
    <textarea id="p3kText" hidden style="display:none"></textarea>
    <div class="p3kfoot"><span id="p3kCount" class="hint"></span><span class="acts-inline"><button type="button" class="btn sec" id="p3kStd">Isi daftar standar</button><button type="button" class="btn sec" id="p3kClr">Kosongkan</button></span></div>
   </div>
-  <div class="acts">
+  <div class="acts facts">
    <button class="btn" id="simpan">Simpan &amp; buat label</button>
+   <button class="btn sec" id="simpanLagi" type="button">Simpan &amp; tambah lagi</button>
    <button class="btn sec" id="reset">Kosongkan</button>
   </div>
   <div id="msg" role="status"></div>
  </section>
+</aside>
 
-<div class="stack">
- <section class="card">
-  <h2><span class="num">2</span>Label cetak <span id="lblDim" class="dim"></span></h2>
-  <div class="lblwrap"><div id="label" class="lbl"></div></div>
-  <div class="lblctl">
-   <div><label for="lblSize">Ukuran label</label>
-    <select id="lblSize">
-     <option value="100x60">100 × 60 mm (besar)</option>
-     <option value="75x45">75 × 45 mm (standar)</option>
-     <option value="60x40">60 × 40 mm</option>
-     <option value="50x30">50 × 30 mm</option>
-     <option value="40x25">40 × 25 mm (kecil)</option>
-     <option value="30x20">30 × 20 mm (mini)</option>
-     <option value="custom">Kustom…</option>
-    </select></div>
-   <div class="copies"><label for="copies">Salinan</label><input id="copies" type="number" min="1" max="99" value="1"></div>
-   <button class="btn" id="cetak">Cetak label</button>
-  </div>
-  <div id="lblCustom" class="row cust" hidden>
-   <div><label for="lblW">Lebar (mm)</label><input id="lblW" type="number" min="20" max="150" value="60"></div>
-   <div><label for="lblH">Tinggi (mm)</label><input id="lblH" type="number" min="15" max="100" value="40"></div>
-  </div>
-  <p class="persheet" id="perSheet"></p>
- </section>
-
- <section class="card">
-  <h2><span class="num"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"/></svg></span>Ringkasan barang <span id="sumTot" class="dim"></span></h2>
-  <div class="sum" id="sum">
-   <button type="button" class="sc ok" data-f="baik"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></i><b id="sBaik">0</b><span>Baik</span></button>
-   <button type="button" class="sc or" data-f="kal"><i class="ico"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></i><b id="sKal">0</b><span>Perlu kalibrasi</span></button>
-   <button type="button" class="sc wr" data-f="perb"><i class="ico"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></i><b id="sPerb">0</b><span>Perlu perbaikan</span></button>
-   <button type="button" class="sc er" data-f="rusak"><i class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/></svg></i><b id="sRusak">0</b><span>Rusak</span></button>
-   <button type="button" class="sc in" data-f="pinjam"><i class="ico"><svg viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg></i><b id="sPinjam">0</b><span>Sedang dipinjam</span></button>
-   <button type="button" class="sc ok" data-f="tsd"><i class="ico"><svg viewBox="0 0 24 24"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12M3.3 7 12 12l8.7-5M7.5 4.27l9 5.15"/></svg></i><b id="sTsd">0</b><span>Tersedia</span></button>
-  </div>
-  <p class="hint">Klik kotak untuk melihat daftar barangnya.</p>
- </section>
-
-</div>
-
- <section class="card full" id="p3kCard">
-  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg></span>Kotak P3K <span id="p3kStat" class="dim"></span></h2>
-  <div class="chips" id="p3kAlerts"></div>
-  <p class="hint">Klik kotak untuk melihat isi &amp; mencatat pemakaian. Stok berkurang otomatis, dan label QR kotak bisa dipindai siapa saja untuk mencatat pemakaian.</p>
-  <div id="p3kList"></div>
-  <div class="empty" id="p3kEmpty" hidden>Belum ada kotak P3K. Pilih klasifikasi P3K di formulir untuk menambah kotak.</div>
- </section>
-
- <section class="card full" id="dbCard">
-  <h2 class="h2flex"><span class="num">3</span>Database barang <span id="stat"></span></h2>
-  <div class="chips" id="alerts"></div>
-  <div class="tools mobar" id="mobar">
-   <input id="cariM" placeholder="Cari kode / nama / S/N / lokasi / peminjam" aria-label="Cari barang" autocomplete="off">
-   <div class="qf" id="qf" aria-label="Filter cepat"></div>
-  </div>
-  <div class="tools">
-   <input id="cari" placeholder="Cari kode / nama / S/N / lokasi / peminjam">
-   <select id="fkat"><option value="">Semua klasifikasi</option></select>
-   <select id="fstat">
-    <option value="">Semua status</option>
-    <option value="lewat">Kalibrasi lewat</option>
-    <option value="segera">Kalibrasi ≤ 30 hari</option>
-    <option value="kal">Kalibrasi lewat / ≤ 30 hari</option>
-    <option value="pinjam">Sedang dipinjam</option>
-    <option value="telat">Telat kembali</option>
-    <option value="tersedia">Tersedia</option>
-    <option value="rusak">Rusak / perlu perbaikan</option>
-   </select>
-   <span class="bulkbox" id="bulkBox">
-    <select id="bulkN"><option value="1">1 label / barang</option><option value="qty">Sesuai jumlah</option></select>
-    <button class="btn sec" id="bulkPrint" disabled>Cetak label terpilih (0)</button>
-    <button class="btn sec" id="bulkPinjam" disabled>Pinjam terpilih (0)</button>
-   </span>
-   <button type="button" class="btn sec moact" id="actToggle" aria-expanded="false">Aksi lainnya ▾</button>
-   <span class="actbox" id="actBox">
-    <button class="btn sec" id="csvImp">Impor CSV</button>
-    <button class="btn sec" id="pdfList">Cetak / PDF</button>
-    <button class="btn sec" id="csv">Ekspor CSV</button>
-    <button class="btn sec" id="xlsx">Ekspor Excel (foto)</button>
-   </span>
-   <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
-  </div>
-  <p class="hint mohint">Ketuk barang untuk detail &amp; aksi · centang di kiri untuk memilih beberapa barang.</p>
-  <label class="selallm"><input type="checkbox" id="selAllM"> <span id="selAllMt">Pilih semua</span></label>
-  <div class="tw"><table>
-   <thead><tr><th><input type="checkbox" id="selAll" aria-label="Pilih semua"></th><th>Kode</th><th>Nama barang</th><th>S/N</th><th>Lokasi</th><th>Kondisi</th><th>Kalibrasi</th><th>Status</th><th>Aksi</th></tr></thead>
-   <tbody id="rows"></tbody>
-  </table></div>
-  <div class="more" id="moreWrap" hidden><button type="button" class="btn sec" id="more"></button></div>
-  <div class="empty" id="empty" hidden>Belum ada data.</div>
- </section>
-
- <section class="card full rhcard" id="rhCard">
-  <h2 class="h2flex"><span class="num"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Riwayat peminjaman <span id="rhStat" class="dim"></span></h2>
-  <div class="chips" id="rhChips"></div>
-  <div class="tools">
-   <input id="rhCari" placeholder="Cari peminjam / barang / proyek / no. dokumen">
-   <select id="rhStatus" aria-label="Filter status">
-    <option value="">Semua status</option>
-    <option value="pinjam">Sedang dipinjam</option>
-    <option value="kembali">Sudah kembali</option>
-    <option value="telat">Telat</option>
-   </select>
-   <label class="rhd">Dari <input type="date" id="rhDari"></label>
-   <label class="rhd">Sampai <input type="date" id="rhSampai"></label>
-   <select id="rhGroup" aria-label="Pengelompokan">
-    <option value="">Urut terbaru</option>
-    <option value="oleh">Per peminjam</option>
-    <option value="dok">Per nomor dokumen</option>
-    <option value="kode">Per barang</option>
-   </select>
-   <button class="btn sec" id="rhReset" type="button">Reset</button>
-   <button class="btn" id="rhPdf" type="button">Cetak / PDF</button>
-  </div>
-  <div class="tw"><table>
-   <thead><tr><th>Tgl pinjam</th><th>Barang</th><th>Peminjam</th><th>Rencana</th><th>Kembali</th><th>Kondisi kembali</th><th>Status</th><th>No. dokumen</th></tr></thead>
-   <tbody id="rhRows"></tbody>
-  </table></div>
-  <div class="more" id="rhMoreWrap" hidden><button type="button" class="btn sec" id="rhMore"></button></div>
-  <div class="empty" id="rhEmpty" hidden>Belum ada riwayat peminjaman.</div>
- </section>
-</main>
-<footer class="foot">Registrasi Kode Barang · data tersimpan aman di Google Sheets</footer>
 
 <button type="button" class="totop" id="toTop" aria-label="Kembali ke atas">↑</button>
 
