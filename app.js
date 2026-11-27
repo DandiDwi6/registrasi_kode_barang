@@ -381,6 +381,7 @@ function render(){
     if(ks.k==='lewat')cbl.push([3,`<span class="bdg ${ks.c}">Kal. lewat</span>`]);else if(ks.k==='segera')cbl.push([1,`<span class="bdg ${ks.c}">Kal. segera</span>`]);
     cbl.sort((x,y)=>y[0]-x[0]);
     const cb=cbl.slice(0,2).map(x=>x[1]).join('')+(cbl.length>2?`<span class="bdg">+${cbl.length-2}</span>`:'');
+    const th1=fotoImg(i,'thm',96),th2=fotoImg(i,'thm dk',96); // thumbnail: kolom sendiri di HP, di samping nama di desktop
     const ib=(at,cls,tt,ic,tx)=>`<button class="btn ${cls} ib" ${at}="${k}" title="${tt}" aria-label="${tt}"><svg viewBox="0 0 24 24">${ic}</svg><span>${tx}</span></button>`;
     const IC={p:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
       e:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
@@ -389,7 +390,7 @@ function render(){
       r:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
       f:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
       d:'<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>'};
-    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="cb">${cb}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
+    return `<tr class="${lastItem&&lastItem.kode===i.kode?'sel':''}${expanded.has(i.kode)?' open':''}${kc}" data-row="${k}"><td><input type="checkbox" class="selr" data-k="${k}"${sel.has(i.kode)?' checked':''} aria-label="Pilih ${k}"></td><td class="th">${th1}</td><td class="code" data-label="Kode"><a href="#${k}" title="Lihat detail">${k}</a><small class="dsub">${esc(catName(i.kat))}</small></td><td class="mo" data-label="Klasifikasi">${esc(catName(i.kat))}</td><td data-label="Nama" class="nm">${th2}${esc(i.nama)}${mt?`<small class="dsub">${mt}</small>`:''}</td><td class="cb">${cb}</td><td class="mo" data-label="Merk / Tipe">${mt}</td><td data-label="S/N" class="sn">${esc(i.sn)}</td><td data-label="Lokasi">${esc(i.lokasi)}</td><td data-label="Kondisi">${kon}</td><td data-label="Kalibrasi">${kal}</td><td data-label="Status">${pj}</td><td class="mo" data-label="Tgl">${esc(i.tgl)}</td>
     <td class="aksi">${ib('data-p','sec','Cetak label',IC.p,'Label')}${ib('data-e','sec','Edit',IC.e,'Edit')}${i.pinjam?ib('data-k','sec','Kembalikan',IC.k,'Kembalikan'):ib('data-b','sec','Pinjamkan',IC.b,'Pinjam')}${i.pinjam?ib('data-j','sec','Cetak form peminjaman',IC.f,'Form'):''}${hasHist?ib('data-r','sec','Riwayat',IC.r,'Riwayat'):''}${ib('data-d','dg','Hapus',IC.d,'Hapus')}</td></tr>`;
   }).join('');
   $('empty').hidden=list.length>0;
@@ -434,6 +435,7 @@ function clearForm(){
   ['nama','merk','tipe','sn','lok','pic','ket',...KALF].forEach(k=>$(k).value='');
   $('qty').value=1;$('kon').value='Baik';$('tgl').value=today();$('kalBox').open=false;
   edP3k&&edP3k.clear();
+  ffReset();
 }
 function startEdit(kode){
   const it=items.find(i=>i.kode===kode);if(!it)return;
@@ -443,12 +445,13 @@ function startEdit(kode){
   $('pic').value=it.pic||'';$('tgl').value=it.tgl||today();$('ket').value=it.ket||'';
   $('kalLast').value=it.kalLast||'';$('kalInt').value=it.kalInt||'';$('kalNext').value=it.kalNext||'';$('kalNo').value=it.kalNo||'';
   $('kalBox').open=!!(it.kalLast||it.kalNext||it.kalNo||it.kalInt);
+  ffReset();
   $('simpan').textContent='Simpan perubahan';$('editkode').textContent=kode;$('editbar').hidden=false;
   drawCats();showNext();msg('');
   $('nama').scrollIntoView({behavior:'smooth',block:'center'});$('nama').focus({preventScroll:true});
 }
 function endEdit(clear){
-  editing=null;$('simpan').textContent='Simpan & buat label';$('editbar').hidden=true;
+  editing=null;ffReset();$('simpan').textContent='Simpan & buat label';$('editbar').hidden=true;
   if(clear)clearForm();
   drawCats();showNext();
 }
@@ -491,11 +494,16 @@ $('simpan').onclick=async()=>{
   try{
     const saved=await commit(it);
     const wasEdit=!!editing;
+    let fnote='';
+    if(!p3k&&(ffNew||ffDel)){ // foto: unggah / hapus setelah data barang tersimpan
+      try{if(ffNew)await fotoSave(saved.kode,ffNew);else await fotoDelete(saved.kode)}
+      catch(err){fnote=' · foto belum tersimpan ('+(err&&err.message||'periksa koneksi')+'), tambahkan lagi dari detail barang'}
+    }
     lastItem=saved;
     if(wasEdit)endEdit(true);
-    else{['nama','merk','tipe','sn','ket','kalLast','kalNext','kalNo'].forEach(k=>$(k).value='');$('qty').value=1;edP3k&&edP3k.clear()}
+    else{['nama','merk','tipe','sn','ket','kalLast','kalNext','kalNo'].forEach(k=>$(k).value='');$('qty').value=1;edP3k&&edP3k.clear();ffReset()}
     label(saved);render();
-    msg((wasEdit?'Diperbarui: ':'Tersimpan: ')+saved.kode+(p3k&&!wasEdit?' · '+(saved.isi||[]).length+' jenis isi':''));
+    msg((wasEdit?'Diperbarui: ':'Tersimpan: ')+saved.kode+(p3k&&!wasEdit?' · '+(saved.isi||[]).length+' jenis isi':'')+fnote,!!fnote);
   }catch(err){msg('Gagal menyimpan: '+(err&&err.message||'hak akses tidak cukup'),1)}
   finally{$('simpan').disabled=false}
 };
@@ -1104,7 +1112,7 @@ function showDetail(kode){
     const status=p
       ?`<span class="bdg ${pinjamLate(it)?'er':'wr'}">${pinjamLate(it)?'Telat kembali':'Dipinjam'}</span> ${esc(p.oleh)}${p.proyek?' · '+esc(p.proyek):''}<br><small>sejak ${esc(fmtID(p.tgl))}${p.rencana?' · rencana kembali '+esc(fmtID(p.rencana)):''}</small>`
       :'<span class="bdg ok">Tersedia</span>';
-    $('dtBody').innerHTML=`<div class="dtname">${esc(it.nama)}</div><dl class="dl">`
+    $('dtBody').innerHTML=(hasFoto(it)?`<div class="dtfotow">${fotoImg(it,'dtfoto',600)}<small>Ketuk foto untuk memperbesar</small></div>`:'')+`<div class="dtname">${esc(it.nama)}</div><dl class="dl">`
       +row('Klasifikasi',esc(catName(it.kat)))
       +row('Merk / Tipe',esc([it.merk,it.tipe].filter(Boolean).join(' / ')))
       +row('Serial number',esc(it.sn))
@@ -1122,6 +1130,8 @@ function showDetail(kode){
     $('dtActs').innerHTML=(p?'<button class="btn" type="button" data-act="kembali">Kembalikan</button>':'<button class="btn" type="button" data-act="pinjam">Pinjam</button>')
       +(p?' <button class="btn sec" type="button" data-act="form">Cetak form</button>':'')
       +((p||(it.riwayat&&it.riwayat.length))?' <button class="btn sec" type="button" data-act="riwayat">Riwayat</button>':'')
+      +' <button class="btn sec" type="button" data-act="foto">'+(hasFoto(it)?'Ganti foto':'Tambah foto')+'</button>'
+      +(hasFoto(it)?' <button class="btn sec" type="button" data-act="fotodel">Hapus foto</button>':'')
       +' <button class="btn sec" type="button" data-act="edit">Edit</button> <button class="btn sec" type="button" data-close="1">Tutup</button>';
   }
   if(!$('dlgDetail').open)$('dlgDetail').showModal();
@@ -1136,6 +1146,8 @@ $('dlgDetail').onclick=e=>{
   if(a==='riwayat')showRiwayat(k);
   if(a==='form')setTimeout(()=>printLoanForm(k),120);
   if(a==='edit')startEdit(k);
+  if(a==='foto')fotoQuickStart(k);
+  if(a==='fotodel')fotoDeleteAsk(k);
   if(a==='p3kpdf')setTimeout(()=>printP3kDoc(k),120);
   if(a==='p3kadd')openP3kAdd(k);
   if(a==='p3klog')showP3kLog(k);
@@ -1172,6 +1184,7 @@ function csvVal(i,k){
   if(k==='kat')return catName(i.kat);
   if(k.startsWith('pinjam'))return i.pinjam?i.pinjam[k.slice(6).toLowerCase()]:'';
   if(k==='riwayat')return i.riwayat&&i.riwayat.length?JSON.stringify(i.riwayat):'';
+  if(k==='foto')return i.foto?FOTO_VIEW+i.foto:'';
   return i[k];
 }
 function parseCSV(text){
@@ -1192,7 +1205,8 @@ function parseCSV(text){
 }
 $('csv').onclick=async()=>{
   const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"'}; // cegah formula injection di Excel
-  const data='\ufeff'+[HEAD.join(',')].concat(items.map(i=>HEAD.map(k=>q(csvVal(i,k))).join(','))).join('\n');
+  const cols=HEAD.concat(['foto']); // kolom foto berisi link gambar (CSV tidak bisa memuat gambar; gunakan Ekspor Excel untuk foto tertanam)
+  const data='\ufeff'+[cols.join(',')].concat(items.map(i=>cols.map(k=>q(csvVal(i,k))).join(','))).join('\n');
   const filename='database-kode-barang.csv';
   try{
     const dl=(typeof claude!=='undefined'&&claude.use)?await claude.use('downloads'):null;
@@ -2131,6 +2145,220 @@ $('actToggle').onclick=()=>{const o=$('actBox').classList.toggle('open');$('actT
 let ttRaf=0;
 window.addEventListener('scroll',()=>{if(ttRaf)return;ttRaf=requestAnimationFrame(()=>{ttRaf=0;$('toTop').classList.toggle('on',window.scrollY>700)})},{passive:true});
 $('toTop').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+
+/* ================= Foto barang (satu foto per barang) ================= */
+const FOTO_VIEW='https://drive.google.com/uc?export=view&id=';
+const fotoCache=new Map(); // id foto -> data URL (diunduh lewat server; dipakai bila link Drive tidak publik)
+const fotoThumb=(id,sz)=>'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w'+sz;
+const FOTO_MAX_SIDE=API?800:480; // sisi terpanjang setelah dikecilkan (mode lokal lebih kecil agar muat di penyimpanan browser)
+const hasFoto=it=>!!(it&&(it.foto||it.fotoLocal));
+function fotoURL(it,sz){
+  if(!it)return '';
+  if(it.fotoLocal)return it.fotoLocal;
+  if(!it.foto)return '';
+  return fotoCache.get(it.foto)||fotoThumb(it.foto,sz||200);
+}
+function fotoImg(it,cls,sz){
+  const u=fotoURL(it,sz);if(!u)return '';
+  return `<img class="${cls}" src="${esc(u)}" data-fid="${esc(it.foto||'')}" alt="Foto ${esc(it.nama||'')}" loading="lazy" onerror="fotoFail(this)">`;
+}
+async function fotoData(id){
+  if(fotoCache.has(id))return fotoCache.get(id);
+  const r=await api({action:'fotoGet',id});
+  fotoCache.set(id,r.data);return r.data;
+}
+async function fotoFail(img){ // link Drive gagal dimuat -> ambil lewat server (tetap jalan walau berbagi link dimatikan)
+  const id=img.dataset.fid;
+  if(!id||!API||img.dataset.tried)return;
+  img.dataset.tried='1';
+  try{img.src=await fotoData(id)}catch(e){img.style.visibility='hidden'}
+}
+
+/* ---- ambil file -> dikecilkan jadi JPEG ---- */
+async function fotoPrepare(file){
+  if(!file||!/^image\//.test(file.type||'image/'))throw new Error('File bukan gambar.');
+  if(file.size>25*1024*1024)throw new Error('File terlalu besar (maksimal 25 MB).');
+  let bmp;
+  try{bmp=await createImageBitmap(file,{imageOrientation:'from-image'})}
+  catch(e){
+    bmp=await new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=()=>no(new Error('Gambar tidak bisa dibaca.'));im.src=u});
+  }
+  const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight,s=Math.min(1,FOTO_MAX_SIDE/Math.max(w,h));
+  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*s));c.height=Math.max(1,Math.round(h*s));
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(bmp,0,0,c.width,c.height);
+  if(bmp.close)bmp.close();
+  return c.toDataURL('image/jpeg',0.82);
+}
+function replaceItem(n){const k=items.findIndex(x=>x.kode===n.kode);if(k>=0)items[k]=n;else items.push(n)}
+async function fotoSave(kode,dataUrl){
+  if(API){
+    const r=await api({action:'fotoSet',kode,data:dataUrl});
+    replaceItem(r.item);fotoCache.set(r.item.foto,dataUrl);
+    if(r.item.fotoShared===false)toast('Foto tersimpan, tetapi Drive tidak mengizinkan berbagi link: foto tidak akan tampil di Spreadsheet.',1);
+    return r.item;
+  }
+  const it=items.find(i=>i.kode===kode);if(!it)throw new Error('Barang tidak ditemukan');
+  it.fotoLocal=dataUrl;
+  try{persist()}catch(e){delete it.fotoLocal;throw new Error('Penyimpanan browser penuh.')}
+  return it;
+}
+async function fotoDelete(kode){
+  if(API){const r=await api({action:'fotoDel',kode});replaceItem(r.item);return r.item}
+  const it=items.find(i=>i.kode===kode);if(it){delete it.fotoLocal;persist()}
+  return it;
+}
+
+/* ---- form: pratinjau & pilih foto ---- */
+let ffNew=null,ffDel=false; // foto baru yang menunggu disimpan / permintaan menghapus foto lama
+const FF_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+function ffRender(){
+  const it=editing?items.find(i=>i.kode===editing):null;
+  const src=ffNew||(!ffDel&&it?fotoURL(it,300):'');
+  $('fPrev').innerHTML=src?`<img src="${esc(src)}" alt="Pratinjau foto" ${(!ffNew&&it&&it.foto)?`data-fid="${esc(it.foto)}" onerror="fotoFail(this)"`:''}>`:FF_ICON;
+  $('fClear').hidden=!src;
+  $('fPick').textContent=src?'Ganti foto':'Ambil / pilih foto';
+  $('fHint').textContent=ffNew?'Foto baru akan diunggah saat kamu menekan Simpan.':ffDel?'Foto akan dihapus saat kamu menekan Simpan.':'Foto dikecilkan otomatis sebelum diunggah.';
+}
+$('fPick').onclick=()=>$('fFile').click();
+$('fFile').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  try{ffNew=await fotoPrepare(f);ffDel=false;ffRender()}catch(err){msg(err.message||'Foto gagal dibaca.',1)}
+};
+$('fClear').onclick=()=>{if(ffNew)ffNew=null;else ffDel=true;ffRender()};
+function ffReset(){ffNew=null;ffDel=false;ffRender()}
+
+/* ---- foto dari detail barang (tambah / ganti / hapus tanpa membuka form) ---- */
+let fqKode=null;
+function fotoQuickStart(k){fqKode=k;$('fQuick').click()}
+$('fQuick').onchange=async e=>{
+  const f=e.target.files[0];e.target.value='';const k=fqKode;fqKode=null;if(!f||!k)return;
+  toast('Mengunggah foto…');
+  try{await fotoSave(k,await fotoPrepare(f));render();toast('Foto tersimpan.')}
+  catch(err){toast('Gagal menyimpan foto: '+(err&&err.message||'periksa koneksi'),1)}
+  showDetail(k);
+};
+async function fotoDeleteAsk(k){
+  if(!confirm('Hapus foto barang '+k+'?'))return;
+  try{await fotoDelete(k);render();toast('Foto dihapus.')}catch(err){toast('Gagal menghapus foto: '+(err&&err.message||'periksa koneksi'),1)}
+  showDetail(k);
+}
+$('dtBody').addEventListener('click',e=>{
+  const im=e.target.closest('img.dtfoto');if(!im)return;
+  const it=items.find(i=>i.kode===dtCur);if(!it)return;
+  $('fBig').src=fotoURL(it,1200);$('fBig').dataset.fid=it.foto||'';delete $('fBig').dataset.tried;
+  $('fBigCap').textContent=it.kode+' · '+it.nama;
+  $('dlgFoto').showModal();
+});
+$('fBig').onerror=()=>fotoFail($('fBig'));
+
+/* ================= Ekspor Excel (.xlsx) dengan foto tertanam ================= */
+// Penulis .xlsx sederhana tanpa pustaka luar (bekerja offline): ZIP tanpa kompresi + XML minimal + gambar.
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRC_T[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  const enc=new TextEncoder(),chunks=[],cd=[];let off=0;
+  const u16=n=>[n&255,(n>>8)&255],u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  files.forEach(f=>{
+    const nm=enc.encode(f.name),crc=crc32(f.data),sz=f.data.length;
+    const lh=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0)]);
+    chunks.push(lh,nm,f.data);
+    cd.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nm);
+    off+=lh.length+nm.length+sz;
+  });
+  const cdSize=cd.reduce((a,b)=>a+b.length,0);
+  const end=new Uint8Array([0x50,0x4b,5,6,...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(off),...u16(0)]);
+  const all=[...chunks,...cd,end],out=new Uint8Array(all.reduce((a,b)=>a+b.length,0));
+  let p=0;all.forEach(b=>{out.set(b,p);p+=b.length});return out;
+}
+const xmlEsc=s=>String(s==null?'':s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const xlsCol=n=>{let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
+/**
+ * headers: string[]; rows: string[][] (kolom pertama = kolom foto, dibiarkan kosong);
+ * images: [{row:index data (0=baris data pertama), bytes:Uint8Array, w, h, ext:'jpeg'|'png'}]; widths: lebar kolom (karakter)
+ */
+function xlsxBuild({sheet='Barang',headers,rows,images,widths}){
+  const enc=new TextEncoder(),X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main',RNS='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const REL='http://schemas.openxmlformats.org/package/2006/relationships';
+  const hasImg=images.length>0,withImg=new Set(images.map(i=>i.row));
+  const cell=(r,c,v,s)=>`<c r="${xlsCol(c)}${r}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  const ROW_PT=80,BOX_PX=100;
+  let sd=`<row r="1" ht="26" customHeight="1">${headers.map((h,c)=>cell(1,c,h,1)).join('')}</row>`;
+  rows.forEach((r,i)=>{
+    sd+=`<row r="${i+2}"${withImg.has(i)?` ht="${ROW_PT}" customHeight="1"`:''}>${r.map((v,c)=>cell(i+2,c,v,2)).join('')}</row>`;
+  });
+  const last=xlsCol(headers.length-1)+(rows.length+1);
+  const sheetXml=X+`<worksheet xmlns="${NS}" xmlns:r="${RNS}"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${sd}</sheetData><autoFilter ref="A1:${last}"/>${hasImg?'<drawing r:id="rId1"/>':''}</worksheet>`;
+  const styles=X+`<styleSheet xmlns="${NS}"><fonts count="2"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0A2A5E"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD0D7E2"/></left><right style="thin"><color rgb="FFD0D7E2"/></right><top style="thin"><color rgb="FFD0D7E2"/></top><bottom style="thin"><color rgb="FFD0D7E2"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const files=[
+    {name:'[Content_Types].xml',data:enc.encode(X+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="png" ContentType="image/png"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${hasImg?'<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>':''}</Types>`)},
+    {name:'_rels/.rels',data:enc.encode(X+`<Relationships xmlns="${REL}"><Relationship Id="rId1" Type="${RNS}/officeDocument" Target="xl/workbook.xml"/></Relationships>`)},
+    {name:'xl/workbook.xml',data:enc.encode(X+`<workbook xmlns="${NS}" xmlns:r="${RNS}"><sheets><sheet name="${xmlEsc(sheet)}" sheetId="1" r:id="rId1"/></sheets></workbook>`)},
+    {name:'xl/_rels/workbook.xml.rels',data:enc.encode(X+`<Relationships xmlns="${REL}"><Relationship Id="rId1" Type="${RNS}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${RNS}/styles" Target="styles.xml"/></Relationships>`)},
+    {name:'xl/styles.xml',data:enc.encode(styles)},
+    {name:'xl/worksheets/sheet1.xml',data:enc.encode(sheetXml)}
+  ];
+  if(hasImg){
+    files.push({name:'xl/worksheets/_rels/sheet1.xml.rels',data:enc.encode(X+`<Relationships xmlns="${REL}"><Relationship Id="rId1" Type="${RNS}/drawing" Target="../drawings/drawing1.xml"/></Relationships>`)});
+    let anchors='',rels='';
+    images.forEach((im,n)=>{
+      const k=Math.min(1,BOX_PX/Math.max(im.w,im.h)),cx=Math.round(im.w*k*9525),cy=Math.round(im.h*k*9525),id=n+1;
+      const offX=Math.round((BOX_PX*9525-cx)/2)+9525*3,offY=Math.round((ROW_PT*12700-cy)/2);
+      anchors+=`<xdr:oneCellAnchor><xdr:from><xdr:col>0</xdr:col><xdr:colOff>${offX}</xdr:colOff><xdr:row>${im.row+1}</xdr:row><xdr:rowOff>${Math.max(0,offY)}</xdr:rowOff></xdr:from><xdr:ext cx="${cx}" cy="${cy}"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="${id+1}" name="Foto ${id}"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr><xdr:blipFill><a:blip r:embed="rId${id}"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill><xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>`;
+      rels+=`<Relationship Id="rId${id}" Type="${RNS}/image" Target="../media/image${id}.${im.ext}"/>`;
+      files.push({name:`xl/media/image${id}.${im.ext}`,data:im.bytes});
+    });
+    files.push({name:'xl/drawings/drawing1.xml',data:enc.encode(X+`<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${RNS}">${anchors}</xdr:wsDr>`)});
+    files.push({name:'xl/drawings/_rels/drawing1.xml.rels',data:enc.encode(X+`<Relationships xmlns="${REL}">${rels}</Relationships>`)});
+  }
+  return zipStore(files);
+}
+function dataUrlBytes(d){
+  const m=/^data:(image\/[a-z+]+);base64,(.*)$/.exec(d||'');if(!m)return null;
+  const bin=atob(m[2]),b=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)b[i]=bin.charCodeAt(i);
+  return{mime:m[1],bytes:b};
+}
+async function fotoBytesFor(list,onProg){ // -> Map(kode -> {bytes,w,h,ext})
+  const out=new Map();let done=0;
+  const need=[...new Set(list.filter(i=>i.foto&&!fotoCache.has(i.foto)&&!i.fotoLocal).map(i=>i.foto))];
+  for(let a=0;a<need.length&&API;a+=12){ // unduh per 12 foto agar permintaan tidak terlalu besar
+    const r=await api({action:'fotoMany',ids:need.slice(a,a+12)});
+    Object.entries(r.map||{}).forEach(([id,d])=>{if(d)fotoCache.set(id,d)});
+  }
+  for(const it of list){
+    const d=it.fotoLocal||fotoCache.get(it.foto),p=dataUrlBytes(d);
+    if(p&&(p.mime==='image/jpeg'||p.mime==='image/png')){
+      const bmp=await createImageBitmap(new Blob([p.bytes],{type:p.mime}));
+      out.set(it.kode,{bytes:p.bytes,w:bmp.width,h:bmp.height,ext:p.mime==='image/png'?'png':'jpeg'});if(bmp.close)bmp.close();
+    }
+    onProg&&onProg(++done);
+  }
+  return out;
+}
+$('xlsx').onclick=async()=>{
+  const btn=$('xlsx'),t0=btn.textContent;btn.disabled=true;
+  try{
+    const list=items.slice().sort((a,b)=>a.kode.localeCompare(b.kode)),withF=list.filter(hasFoto);
+    btn.textContent='Mengambil foto…';
+    const imgMap=await fotoBytesFor(withF,n=>{btn.textContent='Mengambil foto '+n+'/'+withF.length+'…'});
+    btn.textContent='Menyusun Excel…';
+    const headers=['Foto','Kode','Klasifikasi','Nama barang','Merk','Tipe','S/N','Jumlah','Lokasi simpan','Kondisi','PIC','Tgl registrasi','Kalibrasi terakhir','Interval (bln)','Kalibrasi berikutnya','No. sertifikat','Status peminjaman','Keterangan'];
+    const widths=[15,20,14,30,14,14,18,8,16,15,14,13,13,10,13,14,24,32];
+    const images=[],rows=list.map((i,n)=>{
+      const g=imgMap.get(i.kode);if(g)images.push(Object.assign({row:n},g));
+      const p=i.pinjam;
+      return['',i.kode,catName(i.kat),i.nama,i.merk||'',i.tipe||'',i.sn||'',i.qty||'',i.lokasi||'',i.kondisi||'',i.pic||'',i.tgl||'',i.kalLast||'',i.kalInt||'',i.kalNext||'',i.kalNo||'',
+        p?'Dipinjam: '+p.oleh+(p.proyek?' · '+p.proyek:'')+' (sejak '+p.tgl+')':'',i.ket||''];
+    });
+    const bytes=xlsxBuild({headers,rows,images,widths});
+    const url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    const a=document.createElement('a');a.href=url;a.download='database-kode-barang.xlsx';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    const miss=withF.length-images.length;
+    toast('Excel dibuat: '+list.length+' barang, '+images.length+' foto'+(miss?' ('+miss+' foto gagal diambil)':'')+'.',miss>0);
+  }catch(err){msg('Gagal membuat Excel: '+(err&&err.message||'periksa koneksi'),1)}
+  finally{btn.disabled=false;btn.textContent=t0}
+};
 
 /* ================= init ================= */
 async function init(){

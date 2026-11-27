@@ -107,6 +107,17 @@
   </details>
   <label>Keterangan</label>
   <textarea id="ket" rows="2"></textarea>
+  <div class="fotobox" data-np="1">
+   <label>Foto barang <span class="opt">(opsional, satu foto)</span></label>
+   <div class="frow">
+    <div class="fprev" id="fPrev"></div>
+    <div class="facts">
+     <div class="fbtns"><button type="button" class="btn sec" id="fPick">Ambil / pilih foto</button><button type="button" class="btn dg" id="fClear" hidden>Hapus foto</button></div>
+     <p class="hint" id="fHint"></p>
+    </div>
+   </div>
+   <input type="file" id="fFile" accept="image/*" hidden>
+  </div>
   <div id="p3kBox" class="p3kbox" hidden>
    <p class="sub">Isi kotak P3K</p>
    <p class="hint">Isi kotak dengan kartu barang di bawah. Tekan <b>+</b> / <b>&minus;</b> untuk jumlah, pilih satuan dari daftar. Tidak perlu mengetik format apa pun.</p>
@@ -199,6 +210,7 @@
     <button class="btn sec" id="csvImp">Impor CSV</button>
     <button class="btn sec" id="pdfList">Cetak / PDF</button>
     <button class="btn sec" id="csv">Ekspor CSV</button>
+    <button class="btn sec" id="xlsx">Ekspor Excel (foto)</button>
    </span>
    <input type="file" id="csvIn" accept=".csv,text/csv" hidden>
   </div>
@@ -398,6 +410,13 @@
  <h3>Riwayat pemakaian <span id="plKode"></span></h3>
  <div id="plBody"></div>
  <div class="acts"><button class="btn sec" type="button" data-close="dlgP3kLog">Tutup</button></div>
+</dialog>
+
+<input type="file" id="fQuick" accept="image/*" hidden>
+<dialog id="dlgFoto" class="dlgfoto">
+ <img id="fBig" alt="Foto barang">
+ <p class="dsubt" id="fBigCap"></p>
+ <div class="acts"><button class="btn sec" type="button" data-close="dlgFoto">Tutup</button></div>
 </dialog>
 
 <dialog id="dlgToolbox">
